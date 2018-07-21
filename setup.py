@@ -25,5 +25,5 @@ setup(name='textparser',
       ],
       keywords=['parser'],
       url='https://github.com/eerimoq/textparser',
-      packages=find_packages(exclude=['tests']),
+      py_modules=['textparser'],
       test_suite="tests")
