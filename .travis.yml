@@ -1,0 +1,14 @@
+language: python
+python:
+  - "2.7"
+  - "3.6"
+install:
+  - pip install coveralls
+  - pip install -r requirements.txt
+script:
+  - coverage run --source=cantools setup.py test
+  - make test-sdist
+  - env PYTHONPATH=. python examples/hello_world.py
+  - env PYTHONPATH=. python examples/diagnostics/did.py
+after_success:
+  coveralls
