@@ -1,6 +1,10 @@
 # A parser.
 
 
+__author__ = 'Erik Moqvist'
+__version__ = '0.1.0'
+
+
 class Tokens(object):
 
     def __init__(self, tokens):

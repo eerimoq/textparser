@@ -7,7 +7,7 @@ import re
 
 def find_version():
     return re.search(r"^__version__ = '(.*)'$",
-                     open('textparser/__init__.py', 'r').read(),
+                     open('textparser.py', 'r').read(),
                      re.MULTILINE).group(1)
 
 
