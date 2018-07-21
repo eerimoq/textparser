@@ -4,11 +4,8 @@ python:
   - "3.6"
 install:
   - pip install coveralls
-  - pip install -r requirements.txt
 script:
-  - coverage run --source=cantools setup.py test
+  - coverage run --source=textparser setup.py test
   - make test-sdist
-  - env PYTHONPATH=. python examples/hello_world.py
-  - env PYTHONPATH=. python examples/diagnostics/did.py
 after_success:
   coveralls
