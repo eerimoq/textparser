@@ -14,6 +14,7 @@ from textparser import TokenizerError
 from textparser import create_token_re
 from textparser import Any
 from textparser import Inline
+from textparser import Forward
 
 
 def tokenize(items):
@@ -281,6 +282,19 @@ class TextParserTest(unittest.TestCase):
                 ],
                 ['IF', 'foo', 'bar', [['0', '100'], '.']]
             )
+        ]
+
+        for tokens, expected_tree in datas:
+            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
+            self.assertEqual(tree, expected_tree)
+
+    def test_forward(self):
+        foo = Forward()
+        foo <<= Sequence('FOO')
+        grammar = Grammar(foo)
+
+        datas = [
+            ([('FOO', 'foo')], ['foo'])
         ]
 
         for tokens, expected_tree in datas:
