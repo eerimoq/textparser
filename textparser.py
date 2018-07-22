@@ -4,7 +4,7 @@ from collections import namedtuple
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 
 class _Tokens(object):
