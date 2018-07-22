@@ -37,6 +37,9 @@ class _Tokens(object):
 
 
 class _String(object):
+    """Matches a specific token kind.
+
+    """
 
     def __init__(self, kind):
         self.kind = kind
@@ -59,23 +62,8 @@ def _wrap_strings(items):
     return [_wrap_string(item) for item in items]
 
 
-Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
-
-
 class Error(Exception):
     pass
-
-
-def markup_line(string, offset):
-    begin = string.rfind('\n', 0, offset)
-    begin += 1
-
-    end = string.find('\n', offset)
-
-    if end == -1:
-        end = len(string)
-
-    return string[begin:offset] + '>>!<<' + string[offset:end]
 
 
 class TokenizerError(Error):
@@ -92,10 +80,7 @@ class TokenizerError(Error):
         self.string = string
 
 
-def create_token_re(spec):
-    return '|'.join([
-        '(?P<{}>{})'.format(name, regex) for name, regex in spec
-    ])
+Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
 
 
 class Sequence(object):
@@ -336,3 +321,21 @@ def choice(*members):
         return ChoiceDict(*members)
     except Error:
         return Choice(*members)
+
+
+def markup_line(string, offset):
+    begin = string.rfind('\n', 0, offset)
+    begin += 1
+
+    end = string.find('\n', offset)
+
+    if end == -1:
+        end = len(string)
+
+    return string[begin:offset] + '>>!<<' + string[offset:end]
+
+
+def create_token_re(spec):
+    return '|'.join([
+        '(?P<{}>{})'.format(name, regex) for name, regex in spec
+    ])
