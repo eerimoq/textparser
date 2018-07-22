@@ -7,41 +7,6 @@ __author__ = 'Erik Moqvist'
 __version__ = '0.3.0'
 
 
-Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
-
-
-class Error(Exception):
-    pass
-
-
-def markup_line(string, offset):
-    begin = string.rfind('\n', 0, offset)
-    begin += 1
-
-    end = string.find('\n', offset)
-
-    if end == -1:
-        end = len(string)
-
-    return string[begin:offset] + '>>!<<' + string[offset:end]
-
-
-class TokenizerError(Error):
-
-    def __init__(self, line, column, offset, string):
-        message = 'Invalid syntax at line {}, column {}: "{}"'.format(
-            line,
-            column,
-            markup_line(string, offset))
-        super(TokenizerError, self).__init__(message)
-
-
-def create_token_re(spec):
-    return '|'.join([
-        '(?P<{}>{})'.format(name, regex) for name, regex in spec
-    ])
-
-
 class _Tokens(object):
 
     def __init__(self, tokens):
@@ -83,15 +48,54 @@ class _String(object):
             return None
 
 
-def wrap_string(item):
+def _wrap_string(item):
     if isinstance(item, str):
         item = _String(item)
 
     return item
 
 
-def wrap_strings(items):
-    return [wrap_string(item) for item in items]
+def _wrap_strings(items):
+    return [_wrap_string(item) for item in items]
+
+
+Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
+
+
+class Error(Exception):
+    pass
+
+
+def markup_line(string, offset):
+    begin = string.rfind('\n', 0, offset)
+    begin += 1
+
+    end = string.find('\n', offset)
+
+    if end == -1:
+        end = len(string)
+
+    return string[begin:offset] + '>>!<<' + string[offset:end]
+
+
+class TokenizerError(Error):
+
+    def __init__(self, line, column, offset, string):
+        message = 'Invalid syntax at line {}, column {}: "{}"'.format(
+            line,
+            column,
+            markup_line(string, offset))
+        super(TokenizerError, self).__init__(message)
+        self.line = line
+        self.column = column
+        self.offset = offset
+        self.string = string
+
+
+def create_token_re(spec):
+    return '|'.join([
+        '(?P<{}>{})'.format(name, regex) for name, regex in spec
+    ])
 
 
 class Sequence(object):
@@ -100,7 +104,7 @@ class Sequence(object):
     """
 
     def __init__(self, *members):
-        self.members = wrap_strings(members)
+        self.members = _wrap_strings(members)
 
     def match(self, tokens):
         matched = []
@@ -125,7 +129,7 @@ class Choice(object):
     """
 
     def __init__(self, *members):
-        self._members = wrap_strings(members)
+        self._members = _wrap_strings(members)
 
     def match(self, tokens):
         for member in self._members:
@@ -152,13 +156,13 @@ class ChoiceDict(object):
 
         for member in members:
             if not isinstance(member, Sequence):
-                raise RuntimeError()
+                raise Error
 
             if not isinstance(member.members[0], _String):
-                raise RuntimeError()
+                raise Error
 
             if member.members[0].kind in self._members_map:
-                raise RuntimeError()
+                raise Error
 
             self._members_map[member.members[0].kind] = member
 
@@ -172,10 +176,10 @@ class ZeroOrMore(object):
     """
 
     def __init__(self, element, end=None):
-        self._element = wrap_string(element)
+        self._element = _wrap_string(element)
 
         if end is not None:
-            end = wrap_string(end)
+            end = _wrap_string(end)
 
         self._end = end
 
@@ -210,10 +214,10 @@ class OneOrMore(object):
     """
 
     def __init__(self, element, end=None):
-        self._element = wrap_string(element)
+        self._element = _wrap_string(element)
 
         if end is not None:
-            end = wrap_string(end)
+            end = _wrap_string(end)
 
         self._end = end
 
@@ -260,8 +264,8 @@ class DelimitedList(object):
     """
 
     def __init__(self, element, delim=','):
-        self._element = wrap_string(element)
-        self._delim = wrap_string(delim)
+        self._element = _wrap_string(element)
+        self._delim = _wrap_string(delim)
 
     def match(self, tokens):
         matched = []
@@ -324,11 +328,11 @@ class Grammar(object):
         if parsed is not None and tokens.get().kind == '__EOF__':
             return parsed
         else:
-            raise Error()
+            raise Error
 
 
 def choice(*members):
     try:
         return ChoiceDict(*members)
-    except RuntimeError:
+    except Error:
         return Choice(*members)
