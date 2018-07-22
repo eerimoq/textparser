@@ -168,9 +168,11 @@ class ZeroOrMore(object):
         try:
             while True:
                 if self._end is not None:
+                    tokens.save()
                     mo = _match_item(self._end, tokens)
+                    tokens.restore()
 
-                    if mo is None:
+                    if mo is not None:
                         break
 
                 mo = _match_item(self._element, tokens)

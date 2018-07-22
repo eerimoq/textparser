@@ -128,6 +128,27 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
+    def test_zero_or_more_end(self):
+        grammar = Grammar(
+            Sequence(ZeroOrMore('WORD', Sequence('WORD', 'NUMBER')),
+                     Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            (
+                [('WORD', 'bar'), ('NUMBER', '1')],
+                [[], ['bar', '1']]
+            ),
+            (
+                [('WORD', 'foo'), ('WORD', 'bar'), ('NUMBER', '1')],
+                [['foo'], ['bar', '1']]
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
     def test_one_or_more(self):
         grammar = Grammar(OneOrMore('WORD'))
 
@@ -147,6 +168,38 @@ class TextParserTest(unittest.TestCase):
         datas = [
             [],
             [('NUMBER', 'foo')]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+
+            with self.assertRaises(textparser.Error) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(str(cm.exception), '')
+
+    def test_one_or_more_end(self):
+        grammar = Grammar(
+            Sequence(OneOrMore('WORD', Sequence('WORD', 'NUMBER')),
+                     Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            (
+                [('WORD', 'foo'), ('WORD', 'bar'), ('NUMBER', '1')],
+                [['foo'], ['bar', '1']]
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_one_or_more_end_mismatch(self):
+        grammar = Grammar(OneOrMore('WORD', Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            [('WORD', 'bar'), ('NUMBER', '1')]
         ]
 
         for tokens in datas:
