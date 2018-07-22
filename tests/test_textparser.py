@@ -52,6 +52,21 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
+    def test_delimited_list_mismatch(self):
+        grammar = Grammar(DelimitedList('WORD'))
+
+        datas = [
+            [('WORD', 'foo'), (',', ',')]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+
+            with self.assertRaises(textparser.Error) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(str(cm.exception), '')
+
     def test_zero_or_more(self):
         grammar = Grammar(ZeroOrMore('WORD'))
 
