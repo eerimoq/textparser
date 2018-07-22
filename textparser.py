@@ -250,10 +250,7 @@ class DelimitedList(object):
             mo = _match_item(self._element, tokens)
 
             if mo is None:
-                if len(matched) == 0:
-                    return []
-                else:
-                    return None
+                return None
 
             matched.append(mo)
 

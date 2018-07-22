@@ -4,6 +4,7 @@ import textparser
 from textparser import Grammar
 from textparser import Sequence
 from textparser import Choice
+from textparser import choice
 from textparser import ChoiceDict
 from textparser import OneOrMore
 from textparser import ZeroOrMore
@@ -12,6 +13,7 @@ from textparser import Token
 from textparser import TokenizerError
 from textparser import create_token_re
 from textparser import Any
+from textparser import Inline
 
 
 def tokenize(items):
@@ -89,7 +91,6 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(DelimitedList('WORD'))
 
         datas = [
-            ([], []),
             ([('WORD', 'foo')], ['foo']),
             ([('WORD', 'foo'), (',', ','), ('WORD', 'bar')], ['foo', 'bar'])
         ]
@@ -246,6 +247,44 @@ class TextParserTest(unittest.TestCase):
         for tokens, expected_tree in datas:
             tokens = tokenize(tokens + [('__EOF__', '')])
             tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_1(self):
+        grammar = Grammar(Sequence(
+            'IF',
+            Inline(choice(Sequence(choice('A', 'B'), 'STRING'),
+                          'STRING')),
+            'WORD',
+            choice(
+                Sequence(
+                    choice(DelimitedList('STRING'), ZeroOrMore('NUMBER')), '.'),
+            '.')))
+
+        datas = [
+            (
+                [
+                    ('IF', 'IF'),
+                    ('STRING', 'foo'),
+                    ('WORD', 'bar'),
+                    ('.', '.')
+                ],
+                ['IF', 'foo', 'bar', [[], '.']]
+            ),
+            (
+                [
+                    ('IF', 'IF'),
+                    ('STRING', 'foo'),
+                    ('WORD', 'bar'),
+                    ('NUMBER', '0'),
+                    ('NUMBER', '100'),
+                    ('.', '.')
+                ],
+                ['IF', 'foo', 'bar', [['0', '100'], '.']]
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
             self.assertEqual(tree, expected_tree)
 
 
