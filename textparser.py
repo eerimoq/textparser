@@ -33,7 +33,7 @@ class TokenizerError(Error):
             line,
             column,
             markup_line(string, offset))
-        super().__init__(message)
+        super(TokenizerError, self).__init__(message)
 
 
 def create_token_re(spec):
