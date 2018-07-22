@@ -11,6 +11,7 @@ from textparser import DelimitedList
 from textparser import Token
 from textparser import TokenizerError
 from textparser import create_token_re
+from textparser import Any
 
 
 def tokenize(items):
@@ -180,6 +181,19 @@ class TextParserTest(unittest.TestCase):
 
         for spec, re_token in datas:
             self.assertEqual(create_token_re(spec), re_token)
+
+    def test_any(self):
+        grammar = Grammar(Any())
+
+        datas = [
+            ([('A', r'a')], 'a'),
+            ([('B', r'b')], 'b')
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
 
 
 if __name__ == '__main__':
