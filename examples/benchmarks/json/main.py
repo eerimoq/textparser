@@ -130,10 +130,10 @@ LARK_JSON_GRAMMAR = r"""
     ?value: dict
           | list
           | string
-          | SIGNED_NUMBER      -> number
-          | "true"             -> true
-          | "false"            -> false
-          | "null"             -> null
+          | SIGNED_NUMBER
+          | "true"
+          | "false"
+          | "null"
 
     list : "[" [value ("," value)*] "]"
 
@@ -174,32 +174,32 @@ def lark_earley_parse():
 
 
 def pyparsing_parse():
-    TRUE  = pp.Keyword("true")
-    FALSE = pp.Keyword("false")
-    NULL  = pp.Keyword("null")
+    TRUE  = pp.Keyword('true')
+    FALSE = pp.Keyword('false')
+    NULL  = pp.Keyword('null')
 
-    LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
+    LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, '[]{}:')
 
-    jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
-    jsonNumber = pp.pyparsing_common.number()
+    string = pp.dblQuotedString().setParseAction(pp.removeQuotes)
+    number = pp.pyparsing_common.number()
 
-    jsonObject = pp.Forward()
-    jsonValue = pp.Forward()
-    jsonElements = pp.delimitedList(jsonValue)
-    jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
-    jsonValue <<= (jsonString
-                   | jsonNumber
-                   | pp.Group(jsonObject)
-                   | jsonArray
-                   | TRUE
-                   | FALSE
-                   | NULL)
-    memberDef = pp.Group(jsonString + COLON + jsonValue)
-    jsonMembers = pp.delimitedList(memberDef)
-    jsonObject <<= pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
+    object_ = pp.Forward()
+    value = pp.Forward()
+    elements = pp.delimitedList(value)
+    array = pp.Group(LBRACK + pp.Optional(elements, []) + RBRACK)
+    value <<= (string
+               | number
+               | pp.Group(object_)
+               | array
+               | TRUE
+               | FALSE
+               | NULL)
+    member = pp.Group(string + COLON + value)
+    members = pp.delimitedList(member)
+    object_ <<= pp.Dict(LBRACE + pp.Optional(members) + RBRACE)
 
     def parse():
-        jsonValue.parseString(JSON_STRING)
+        value.parseString(JSON_STRING)
 
     return timeit.timeit(parse, number=ITERATIONS)
 
