@@ -280,6 +280,23 @@ class Inline(object):
         return self._element.match(tokens)
 
 
+class Optional(object):
+    """Matches a pattern zero or one times.
+
+    """
+
+    def __init__(self, element):
+        self._element = _wrap_string(element)
+
+    def match(self, tokens):
+        mo = self._element.match(tokens)
+
+        if mo is None:
+            return []
+        else:
+            return [mo]
+
+
 class Forward(object):
 
     def __init__(self):

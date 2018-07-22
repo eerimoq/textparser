@@ -15,6 +15,7 @@ from textparser import create_token_re
 from textparser import Any
 from textparser import Inline
 from textparser import Forward
+from textparser import Optional
 
 
 def tokenize(items):
@@ -295,6 +296,38 @@ class TextParserTest(unittest.TestCase):
 
         datas = [
             ([('FOO', 'foo')], ['foo'])
+        ]
+
+        for tokens, expected_tree in datas:
+            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
+            self.assertEqual(tree, expected_tree)
+
+    def test_optional(self):
+        grammar = Grammar(Sequence(Optional('WORD'),
+                                   Optional('WORD'),
+                                   Optional('NUMBER')))
+
+        datas = [
+            (
+                [],
+                [[], [], []]
+            ),
+            (
+                [('WORD', 'a')],
+                [['a'], [], []]
+            ),
+            (
+                [('NUMBER', 'c')],
+                [[], [], ['c']]
+            ),
+            (
+                [('WORD', 'a'), ('NUMBER', 'c')],
+                [['a'], [], ['c']]
+            ),
+            (
+                [('WORD', 'a'), ('WORD', 'b'), ('NUMBER', 'c')],
+                [['a'], ['b'], ['c']]
+            )
         ]
 
         for tokens, expected_tree in datas:
