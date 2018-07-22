@@ -3,11 +3,14 @@ import unittest
 import textparser
 from textparser import Grammar
 from textparser import Sequence
+from textparser import Choice
+from textparser import ChoiceDict
 from textparser import OneOrMore
 from textparser import ZeroOrMore
 from textparser import DelimitedList
 from textparser import Token
 from textparser import TokenizerError
+from textparser import create_token_re
 
 
 def tokenize(items):
@@ -28,10 +31,53 @@ class TextParserTest(unittest.TestCase):
 
     def test_sequence_mismatch(self):
         grammar = Grammar(Sequence('NUMBER', 'WORD'))
-        tokens = tokenize([
-            ('NUMBER', '1.45'),
-            ('__EOF__', '')
-        ])
+        tokens = tokenize([('NUMBER', '1.45'), ('__EOF__', '')])
+
+        with self.assertRaises(textparser.Error) as cm:
+            grammar.parse(tokens)
+
+        self.assertEqual(str(cm.exception), '')
+
+    def test_choice(self):
+        grammar = Grammar(Choice('NUMBER', 'WORD'))
+
+        datas = [
+            ([('WORD', 'm')], 'm'),
+            ([('NUMBER', '5')], '5')
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_choice_mismatch(self):
+        grammar = Grammar(Choice('NUMBER', 'WORD'))
+        tokens = tokenize([(',', ','), ('__EOF__', '')])
+
+        with self.assertRaises(textparser.Error) as cm:
+            grammar.parse(tokens)
+
+        self.assertEqual(str(cm.exception), '')
+
+    def test_choice_dict(self):
+        grammar = Grammar(ChoiceDict(Sequence('NUMBER'),
+                                     Sequence('WORD')))
+
+        datas = [
+            ([('WORD', 'm')], ['m']),
+            ([('NUMBER', '5')], ['5'])
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_choice_dict_mismatch(self):
+        grammar = Grammar(ChoiceDict(Sequence('NUMBER'),
+                                     Sequence('WORD')))
+        tokens = tokenize([(',', ','), ('__EOF__', '')])
 
         with self.assertRaises(textparser.Error) as cm:
             grammar.parse(tokens)
@@ -125,6 +171,15 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(
                 str(cm.exception),
                 'Invalid syntax at line 0, column 1: "{}"'.format(message))
+
+    def test_create_token_re(self):
+        datas = [
+            ([('A', r'a')], '(?P<A>a)'),
+            ([('A', r'b'), ('C', r'd')], '(?P<A>b)|(?P<C>d)')
+        ]
+
+        for spec, re_token in datas:
+            self.assertEqual(create_token_re(spec), re_token)
 
 
 if __name__ == '__main__':

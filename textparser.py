@@ -295,7 +295,11 @@ class Grammar(object):
 
     def parse(self, tokens):
         tokens = _Tokens(tokens)
-        parsed = self._root.match(tokens)
+
+        try:
+            parsed = self._root.match(tokens)
+        except KeyError:
+            parsed = None
 
         if parsed is not None and tokens.get().kind == '__EOF__':
             return parsed
