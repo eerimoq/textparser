@@ -71,14 +71,27 @@ class _Tokens(object):
         return str(self._tokens[self._pos:self._pos + 2])
 
 
-def _match_item(item, tokens):
-    if isinstance(item, str):
-        if item != tokens.peek().kind:
-            return None
-        else:
+class _String(object):
+
+    def __init__(self, kind):
+        self.kind = kind
+
+    def match(self, tokens):
+        if self.kind == tokens.peek().kind:
             return tokens.get().value
-    else:
-        return item.match(tokens)
+        else:
+            return None
+
+
+def wrap_string(item):
+    if isinstance(item, str):
+        item = _String(item)
+
+    return item
+
+
+def wrap_strings(items):
+    return [wrap_string(item) for item in items]
 
 
 class Sequence(object):
@@ -87,13 +100,13 @@ class Sequence(object):
     """
 
     def __init__(self, *members):
-        self.members = members
+        self.members = wrap_strings(members)
 
     def match(self, tokens):
         matched = []
 
         for member in self.members:
-            mo = _match_item(member, tokens)
+            mo = member.match(tokens)
 
             if mo is None:
                 return None
@@ -112,12 +125,12 @@ class Choice(object):
     """
 
     def __init__(self, *members):
-        self._members = members
+        self._members = wrap_strings(members)
 
     def match(self, tokens):
         for member in self._members:
             tokens.save()
-            mo = _match_item(member, tokens)
+            mo = member.match(tokens)
 
             if mo is not None:
                 tokens.drop()
@@ -141,16 +154,16 @@ class ChoiceDict(object):
             if not isinstance(member, Sequence):
                 raise RuntimeError()
 
-            if not isinstance(member.members[0], str):
+            if not isinstance(member.members[0], _String):
                 raise RuntimeError()
 
-            if member.members[0] in self._members_map:
+            if member.members[0].kind in self._members_map:
                 raise RuntimeError()
 
-            self._members_map[member.members[0]] = member
+            self._members_map[member.members[0].kind] = member
 
     def match(self, tokens):
-        return _match_item(self._members_map[tokens.peek().kind], tokens)
+        return self._members_map[tokens.peek().kind].match(tokens)
 
 
 class ZeroOrMore(object):
@@ -159,7 +172,11 @@ class ZeroOrMore(object):
     """
 
     def __init__(self, element, end=None):
-        self._element = element
+        self._element = wrap_string(element)
+
+        if end is not None:
+            end = wrap_string(end)
+
         self._end = end
 
     def match(self, tokens):
@@ -169,13 +186,13 @@ class ZeroOrMore(object):
             while True:
                 if self._end is not None:
                     tokens.save()
-                    mo = _match_item(self._end, tokens)
+                    mo = self._end.match(tokens)
                     tokens.restore()
 
                     if mo is not None:
                         break
 
-                mo = _match_item(self._element, tokens)
+                mo = self._element.match(tokens)
 
                 if mo is None:
                     break
@@ -193,7 +210,11 @@ class OneOrMore(object):
     """
 
     def __init__(self, element, end=None):
-        self._element = element
+        self._element = wrap_string(element)
+
+        if end is not None:
+            end = wrap_string(end)
+
         self._end = end
 
     def match(self, tokens):
@@ -203,13 +224,13 @@ class OneOrMore(object):
             while True:
                 if self._end is not None:
                     tokens.save()
-                    mo = _match_item(self._end, tokens)
+                    mo = self._end.match(tokens)
                     tokens.restore()
 
                     if mo is not None:
                         break
 
-                mo = _match_item(self._element, tokens)
+                mo = self._element.match(tokens)
 
                 if mo is None:
                     break
@@ -239,15 +260,15 @@ class DelimitedList(object):
     """
 
     def __init__(self, element, delim=','):
-        self._element = element
-        self._delim = delim
+        self._element = wrap_string(element)
+        self._delim = wrap_string(delim)
 
     def match(self, tokens):
         matched = []
 
         while True:
             # Element.
-            mo = _match_item(self._element, tokens)
+            mo = self._element.match(tokens)
 
             if mo is None:
                 return None
@@ -255,7 +276,7 @@ class DelimitedList(object):
             matched.append(mo)
 
             # Delimiter.
-            mo = _match_item(self._delim, tokens)
+            mo = self._delim.match(tokens)
 
             if mo is None:
                 return matched
