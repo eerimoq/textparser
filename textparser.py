@@ -4,7 +4,7 @@ from collections import namedtuple
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 
 Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
