@@ -3,6 +3,7 @@ import unittest
 import textparser
 from textparser import Grammar
 from textparser import Sequence
+from textparser import DelimitedList
 from textparser import Token
 
 
@@ -33,6 +34,20 @@ class TextParserTest(unittest.TestCase):
             grammar.parse(tokens)
 
         self.assertEqual(str(cm.exception), '')
+
+    def test_delimited_list(self):
+        grammar = Grammar(DelimitedList('WORD'))
+
+        datas = [
+            ([], []),
+            ([('WORD', 'foo')], ['foo']),
+            ([('WORD', 'foo'), (',', ','), ('WORD', 'bar')], ['foo', 'bar'])
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
 
 
 if __name__ == '__main__':

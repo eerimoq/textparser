@@ -14,6 +14,34 @@ class Error(Exception):
     pass
 
 
+def markup_line(string, offset):
+    begin = string.rfind('\n', 0, offset)
+    begin += 1
+
+    end = string.find('\n', offset)
+
+    if end == -1:
+        end = len(string)
+
+    return string[begin:offset] + '>>!<<' + string[offset:end]
+
+
+class TokenizerError(Error):
+
+    def __init__(self, line, column, offset, string):
+        message = 'Invalid syntax at line {}, column {}: "{}"'.format(
+            line,
+            column,
+            markup_line(string, offset))
+        super().__init__(message)
+
+
+def create_token_re(spec):
+    return '|'.join([
+        '(?P<{}>{})'.format(name, regex) for name, regex in spec
+    ])
+
+
 class _Tokens(object):
 
     def __init__(self, tokens):
@@ -220,7 +248,10 @@ class DelimitedList(object):
             mo = _match_item(self._element, tokens)
 
             if mo is None:
-                return None
+                if len(matched) == 0:
+                    return []
+                else:
+                    return None
 
             matched.append(mo)
 
@@ -238,6 +269,20 @@ class Inline(object):
 
     def match(self, tokens):
         return self._element.match(tokens)
+
+
+class Forward(object):
+
+    def __init__(self):
+        self._inner = None
+
+    def __ilshift__(self, other):
+        self._inner = other
+
+        return self
+
+    def match(self, tokens):
+        return self._inner.match(tokens)
 
 
 class Grammar(object):
