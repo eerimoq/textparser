@@ -5,6 +5,7 @@ from textparser import Grammar
 from textparser import Sequence
 from textparser import DelimitedList
 from textparser import Token
+from textparser import TokenizerError
 
 
 def tokenize(items):
@@ -48,6 +49,22 @@ class TextParserTest(unittest.TestCase):
             tokens = tokenize(tokens + [('__EOF__', '')])
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
+
+    def test_tokenizer_error(self):
+        datas = [
+            (2, 'hej', 'he>>!<<j'),
+            (0, 'a\nb\n', '>>!<<a'),
+            (1, 'a\nb\n', 'a>>!<<'),
+            (2, 'a\nb\n', '>>!<<b')
+        ]
+
+        for offset, string, message in datas:
+            with self.assertRaises(TokenizerError) as cm:
+                raise TokenizerError(0, 1, offset, string)
+
+            self.assertEqual(
+                str(cm.exception),
+                'Invalid syntax at line 0, column 1: "{}"'.format(message))
 
 
 if __name__ == '__main__':
