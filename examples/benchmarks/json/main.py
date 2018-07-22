@@ -49,14 +49,14 @@ with open(DATA_JSON, 'r') as fin:
 
 def tokenize(string):
     names = {
-        'LPAREN': '(',
-        'RPAREN': ')',
+        'LPAREN':   '(',
+        'RPAREN':   ')',
         'LBRACKET': '[',
         'RBRACKET': ']',
-        'LBRACE': '{',
-        'RBRACE': '}',
-        'COMMA':  ',',
-        'COLON':  ':'
+        'LBRACE':   '{',
+        'RBRACE':   '}',
+        'COMMA':    ',',
+        'COLON':    ':'
     }
 
     spec = [
