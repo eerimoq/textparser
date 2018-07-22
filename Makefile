@@ -2,7 +2,8 @@ test:
 	python2 setup.py test
 	python3 setup.py test
 	$(MAKE) test-sdist
-	codespell -d $$(git ls-files)
+	env PYTHONPATH=. python3 examples/benchmarks/json/main.py
+	codespell -d $$(git ls-files | grep -v \.json)
 
 test-sdist:
 	rm -rf dist

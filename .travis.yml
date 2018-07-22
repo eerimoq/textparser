@@ -7,5 +7,6 @@ install:
 script:
   - coverage run --source=textparser setup.py test
   - make test-sdist
+  - env PYTHONPATH=. python examples/benchmarks/json/main.py
 after_success:
   coveralls
