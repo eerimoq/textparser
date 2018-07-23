@@ -141,21 +141,33 @@ class ChoiceDict(object):
 
     def __init__(self, *members):
         self._members_map = {}
+        members = _wrap_strings(members)
 
         for member in members:
-            if not isinstance(member, Sequence):
-                raise Error
+            if isinstance(member, _String):
+                if member.kind in self._members_map:
+                    raise Error
 
-            if not isinstance(member.members[0], _String):
-                raise Error
+                self._members_map[member.kind] = member
+            else:
+                if not isinstance(member, Sequence):
+                    raise Error
 
-            if member.members[0].kind in self._members_map:
-                raise Error
+                if not isinstance(member.members[0], _String):
+                    raise Error
 
-            self._members_map[member.members[0].kind] = member
+                if member.members[0].kind in self._members_map:
+                    raise Error
+
+                self._members_map[member.members[0].kind] = member
 
     def match(self, tokens):
-        return self._members_map[tokens.peek().kind].match(tokens)
+        kind = tokens.peek().kind
+
+        if kind in self._members_map:
+            return self._members_map[kind].match(tokens)
+        else:
+            return None
 
 
 class ZeroOrMore(object):
@@ -174,24 +186,21 @@ class ZeroOrMore(object):
     def match(self, tokens):
         matched = []
 
-        try:
-            while True:
-                if self._end is not None:
-                    tokens.save()
-                    mo = self._end.match(tokens)
-                    tokens.restore()
+        while True:
+            if self._end is not None:
+                tokens.save()
+                mo = self._end.match(tokens)
+                tokens.restore()
 
-                    if mo is not None:
-                        break
-
-                mo = self._element.match(tokens)
-
-                if mo is None:
+                if mo is not None:
                     break
 
-                matched.append(mo)
-        except KeyError:
-            pass
+            mo = self._element.match(tokens)
+
+            if mo is None:
+                break
+
+            matched.append(mo)
 
         return matched
 
@@ -212,24 +221,21 @@ class OneOrMore(object):
     def match(self, tokens):
         matched = []
 
-        try:
-            while True:
-                if self._end is not None:
-                    tokens.save()
-                    mo = self._end.match(tokens)
-                    tokens.restore()
+        while True:
+            if self._end is not None:
+                tokens.save()
+                mo = self._end.match(tokens)
+                tokens.restore()
 
-                    if mo is not None:
-                        break
-
-                mo = self._element.match(tokens)
-
-                if mo is None:
+                if mo is not None:
                     break
 
-                matched.append(mo)
-        except KeyError:
-            pass
+            mo = self._element.match(tokens)
+
+            if mo is None:
+                break
+
+            matched.append(mo)
 
         if len(matched) > 0:
             return matched
@@ -324,11 +330,7 @@ class Grammar(object):
 
     def parse(self, tokens):
         tokens = _Tokens(tokens)
-
-        try:
-            parsed = self._root.match(tokens)
-        except KeyError:
-            parsed = None
+        parsed = self._root.match(tokens)
 
         if parsed is not None and tokens.get().kind == '__EOF__':
             return parsed

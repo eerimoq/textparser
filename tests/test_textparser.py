@@ -71,13 +71,12 @@ class TextParserTest(unittest.TestCase):
         self.assertEqual(str(cm.exception), '')
 
     def test_choice_dict(self):
-        grammar = Grammar(ChoiceDict(Sequence('NUMBER'),
-                                     Sequence('WORD')))
+        grammar = Grammar(ChoiceDict(Sequence('NUMBER'), 'WORD'))
 
         datas = [
             (
                 [('WORD', 'm')],
-                ['m']
+                'm'
             ),
             (
                 [('NUMBER', '5')],
