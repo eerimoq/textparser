@@ -16,7 +16,7 @@ Documentation: http://textparser.readthedocs.org/en/latest
 Credits
 =======
 
-- Thanks ``pyparsing`` for a user friendly interface. Many of
+- Thanks `PyParsing`_ for a user friendly interface. Many of
   ``textparser``'s class names are taken from this project.
 
 Installation
