@@ -4,11 +4,20 @@
 About
 =====
 
-Text parser.
+A text parser written in the Python language.
+
+The parser is `pretty fast`_, but not as user friendly as `PyParsing`_
+and `Lark`_.
 
 Project homepage: https://github.com/eerimoq/textparser
 
 Documentation: http://textparser.readthedocs.org/en/latest
+
+Credits
+=======
+
+- Thanks ``pyparsing`` for a user friendly interface. Many of
+  ``textparser``'s class names are taken from this project.
 
 Installation
 ============
@@ -19,6 +28,8 @@ Installation
 
 Example usage
 =============
+
+To be added.
 
 Contributing
 ============
@@ -49,3 +60,7 @@ Contributing
 
 .. |coverage| image:: https://coveralls.io/repos/github/eerimoq/textparser/badge.svg?branch=master
 .. _coverage: https://coveralls.io/github/eerimoq/textparser
+
+.. _pretty fast: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/main.py#L15-L25
+.. _PyParsing: https://github.com/pyparsing/pyparsing
+.. _Lark: https://github.com/lark-parser/lark
