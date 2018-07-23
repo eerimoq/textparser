@@ -10,8 +10,8 @@ from textparser import OneOrMore
 from textparser import ZeroOrMore
 from textparser import DelimitedList
 from textparser import Token
-from textparser import TokenizerError
-from textparser import create_token_re
+from textparser import TokenizeError
+from textparser import tokenize_init
 from textparser import Any
 from textparser import Inline
 from textparser import Forward
@@ -253,8 +253,8 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for offset, string, message in datas:
-            with self.assertRaises(TokenizerError) as cm:
-                raise TokenizerError(0, 1, offset, string)
+            with self.assertRaises(TokenizeError) as cm:
+                raise TokenizeError(0, 1, offset, string)
 
             self.assertEqual(
                 str(cm.exception),
@@ -272,8 +272,12 @@ class TextParserTest(unittest.TestCase):
             )
         ]
 
-        for spec, re_token in datas:
-            self.assertEqual(create_token_re(spec), re_token)
+        for spec, expected_re_token in datas:
+            line, line_start, tokens, re_token = tokenize_init(spec)
+            self.assertEqual(line, 1)
+            self.assertEqual(line_start, -1)
+            self.assertEqual(tokens, [])
+            self.assertEqual(re_token, expected_re_token)
 
     def test_any(self):
         grammar = Grammar(Any())

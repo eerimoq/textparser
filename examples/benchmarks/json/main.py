@@ -78,10 +78,7 @@ def tokenize(string):
         ('MISMATCH', r'.')
     ]
 
-    line = 1
-    line_start = -1
-    tokens = []
-    re_token = tp.create_token_re(spec)
+    line, line_start, tokens, re_token = tp.tokenize_init(spec)
 
     for mo in re.finditer(re_token, string, re.DOTALL):
         kind = mo.lastgroup
@@ -105,7 +102,7 @@ def tokenize(string):
         else:
             column = mo.start() - line_start
 
-            raise tp.TokenizerError(line, column, mo.start(), string)
+            raise tp.TokenizeError(line, column, mo.start(), string)
 
     return tokens
 

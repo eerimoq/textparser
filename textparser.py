@@ -69,14 +69,14 @@ class Error(Exception):
     pass
 
 
-class TokenizerError(Error):
+class TokenizeError(Error):
 
     def __init__(self, line, column, offset, string):
         message = 'Invalid syntax at line {}, column {}: "{}"'.format(
             line,
             column,
             markup_line(string, offset))
-        super(TokenizerError, self).__init__(message)
+        super(TokenizeError, self).__init__(message)
         self.line = line
         self.column = column
         self.offset = offset
@@ -357,7 +357,12 @@ def markup_line(string, offset):
     return string[begin:offset] + '>>!<<' + string[offset:end]
 
 
-def create_token_re(spec):
-    return '|'.join([
+def tokenize_init(spec):
+    line = 1
+    line_start = -1
+    tokens = []
+    re_token = '|'.join([
         '(?P<{}>{})'.format(name, regex) for name, regex in spec
     ])
+
+    return line, line_start, tokens, re_token
