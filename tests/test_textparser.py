@@ -6,16 +6,19 @@ from textparser import Sequence
 from textparser import Choice
 from textparser import choice
 from textparser import ChoiceDict
-from textparser import OneOrMore
 from textparser import ZeroOrMore
+from textparser import ZeroOrMoreDict
+from textparser import OneOrMore
+from textparser import OneOrMoreDict
 from textparser import DelimitedList
 from textparser import Token
 from textparser import TokenizeError
 from textparser import tokenize_init
 from textparser import Any
-from textparser import Inline
-from textparser import Forward
 from textparser import Optional
+from textparser import Inline
+from textparser import Tag
+from textparser import Forward
 
 
 def tokenize(items):
@@ -177,6 +180,30 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
+    def test_zero_or_more_dict(self):
+        grammar = Grammar(ZeroOrMoreDict(Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            (
+                [],
+                {}
+            ),
+            (
+                [('WORD', 'foo'), ('NUMBER', '1'),
+                 ('WORD', 'bar'), ('NUMBER', '2'),
+                 ('WORD', 'foo'), ('NUMBER', '3')],
+                {
+                    'foo': [['foo', '1'], ['foo', '3']],
+                    'bar': [['bar', '2']]
+                }
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
     def test_one_or_more(self):
         grammar = Grammar(OneOrMore('WORD'))
 
@@ -234,6 +261,47 @@ class TextParserTest(unittest.TestCase):
 
         datas = [
             [('WORD', 'bar'), ('NUMBER', '1')]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.Error) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(str(cm.exception), '')
+
+    def test_one_or_more_dict(self):
+        grammar = Grammar(OneOrMoreDict(Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            (
+                [('WORD', 'foo'), ('NUMBER', '1')],
+                {
+                    'foo': [['foo', '1']]
+                }
+            ),
+            (
+                [('WORD', 'foo'), ('NUMBER', '1'),
+                 ('WORD', 'bar'), ('NUMBER', '2'),
+                 ('WORD', 'foo'), ('NUMBER', '3')],
+                {
+                    'foo': [['foo', '1'], ['foo', '3']],
+                    'bar': [['bar', '2']]
+                }
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens + [('__EOF__', '')])
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_one_or_more_dict_mismatch(self):
+        grammar = Grammar(OneOrMoreDict(Sequence('WORD', 'NUMBER')))
+
+        datas = [
+            [('WORD', 'foo')]
         ]
 
         for tokens in datas:
@@ -383,6 +451,46 @@ class TextParserTest(unittest.TestCase):
         for tokens, expected_tree in datas:
             tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
+
+    def test_tag(self):
+        grammar = Grammar(Tag('a',
+                              Tag('b',
+                                  choice(Tag('c', 'WORD'),
+                                         Tag('d', Optional('NUMBER'))))))
+
+        datas = [
+            (
+                [('WORD', 'bar')],
+                ('a', ('b', ('c', 'bar')))
+            ),
+            (
+                [('NUMBER', '1')],
+                ('a', ('b', ('d', ['1'])))
+            ),
+            (
+                [],
+                ('a', ('b', ('d', [])))
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tree = grammar.parse(tokenize(tokens))
+            self.assertEqual(tree, expected_tree)
+
+    def test_tag_mismatch(self):
+        grammar = Grammar(Tag('a', 'WORD'))
+
+        datas = [
+            [('NUMBER', 'bar')]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.Error) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(str(cm.exception), '')
 
 
 if __name__ == '__main__':

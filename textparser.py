@@ -1,6 +1,7 @@
 # A text parser.
 
 from collections import namedtuple
+from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
@@ -86,7 +87,13 @@ class TokenizeError(Error):
 Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
 
 
-class Sequence(object):
+class Pattern(object):
+
+    def match(self, tokens):
+        raise NotImplementedError('To be implemented by subclasses.')
+
+
+class Sequence(Pattern):
     """Matches a sequence of patterns.
 
     """
@@ -111,7 +118,7 @@ class Sequence(object):
         return matched
 
 
-class Choice(object):
+class Choice(Pattern):
     """Matches any of given patterns.
 
     """
@@ -134,7 +141,7 @@ class Choice(object):
         return None
 
 
-class ChoiceDict(object):
+class ChoiceDict(Pattern):
     """Matches any of given patterns.
 
     """
@@ -170,18 +177,19 @@ class ChoiceDict(object):
             return None
 
 
-class ZeroOrMore(object):
+class Repeated(Pattern):
     """Matches a pattern zero or more times.
 
     """
 
-    def __init__(self, element, end=None):
+    def __init__(self, element, end=None, minimum_length=0):
         self._element = _wrap_string(element)
 
         if end is not None:
             end = _wrap_string(end)
 
         self._end = end
+        self._minimum_length = minimum_length
 
     def match(self, tokens):
         matched = []
@@ -202,48 +210,92 @@ class ZeroOrMore(object):
 
             matched.append(mo)
 
-        return matched
-
-
-class OneOrMore(object):
-    """Matches a pattern one or more times.
-
-    """
-
-    def __init__(self, element, end=None):
-        self._element = _wrap_string(element)
-
-        if end is not None:
-            end = _wrap_string(end)
-
-        self._end = end
-
-    def match(self, tokens):
-        matched = []
-
-        while True:
-            if self._end is not None:
-                tokens.save()
-                mo = self._end.match(tokens)
-                tokens.restore()
-
-                if mo is not None:
-                    break
-
-            mo = self._element.match(tokens)
-
-            if mo is None:
-                break
-
-            matched.append(mo)
-
-        if len(matched) > 0:
+        if len(matched) >= self._minimum_length:
             return matched
         else:
             return None
 
 
-class Any(object):
+class RepeatedDict(Repeated):
+    """Matches a pattern zero or more times.
+
+    """
+
+    def __init__(self, element, end=None, minimum_length=0, key=None):
+        super(RepeatedDict, self).__init__(element, end, minimum_length)
+
+        if key is None:
+            key = itemgetter(0)
+
+        self._key = key
+
+    def match(self, tokens):
+        matched = {}
+
+        while True:
+            if self._end is not None:
+                tokens.save()
+                mo = self._end.match(tokens)
+                tokens.restore()
+
+                if mo is not None:
+                    break
+
+            mo = self._element.match(tokens)
+
+            if mo is None:
+                break
+
+            key = self._key(mo)
+
+            try:
+                matched[key].append(mo)
+            except KeyError:
+                matched[key] = [mo]
+
+        if len(matched) >= self._minimum_length:
+            return matched
+        else:
+            return None
+
+
+class ZeroOrMore(Repeated):
+    """Matches a pattern zero or more times.
+
+    """
+
+    def __init__(self, element, end=None):
+        super(ZeroOrMore, self).__init__(element, end, 0)
+
+
+class ZeroOrMoreDict(RepeatedDict):
+    """Matches a pattern zero or more times.
+
+    """
+
+    def __init__(self, element, end=None, key=None):
+        super(ZeroOrMoreDict, self).__init__(element, end, 0, key)
+
+
+class OneOrMore(Repeated):
+    """Matches a pattern one or more times.
+
+    """
+
+    def __init__(self, element, end=None):
+        super(OneOrMore, self).__init__(element, end, 1)
+
+
+class OneOrMoreDict(RepeatedDict):
+    """Matches a pattern one or more times.
+
+    """
+
+    def __init__(self, element, end=None, key=None):
+        super(OneOrMoreDict, self).__init__(element, end, 1, key)
+
+
+class Any(Pattern):
     """Matches any token.
 
     """
@@ -252,7 +304,7 @@ class Any(object):
         return tokens.get().value
 
 
-class DelimitedList(object):
+class DelimitedList(Pattern):
     """Matches a delimented list of given pattern.
 
     """
@@ -280,16 +332,7 @@ class DelimitedList(object):
                 return matched
 
 
-class Inline(object):
-
-    def __init__(self, element):
-        self._element = element
-
-    def match(self, tokens):
-        return self._element.match(tokens)
-
-
-class Optional(object):
+class Optional(Pattern):
     """Matches a pattern zero or one times.
 
     """
@@ -306,7 +349,31 @@ class Optional(object):
             return [mo]
 
 
-class Forward(object):
+class Inline(Pattern):
+
+    def __init__(self, inner):
+        self._inner = inner
+
+    def match(self, tokens):
+        return self._inner.match(tokens)
+
+
+class Tag(Pattern):
+
+    def __init__(self, name, inner):
+        self._name = name
+        self._inner = _wrap_string(inner)
+
+    def match(self, tokens):
+        mo = self._inner.match(tokens)
+
+        if mo is not None:
+            return (self._name, mo)
+        else:
+            return None
+
+
+class Forward(Pattern):
 
     def __init__(self):
         self._inner = None
