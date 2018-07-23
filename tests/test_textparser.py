@@ -28,15 +28,14 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(Sequence('NUMBER', 'WORD'))
         tokens = tokenize([
             ('NUMBER', '1.45'),
-            ('WORD', 'm'),
-            ('__EOF__', '')
+            ('WORD', 'm')
         ])
         tree = grammar.parse(tokens)
         self.assertEqual(tree, ['1.45', 'm'])
 
     def test_sequence_mismatch(self):
         grammar = Grammar(Sequence('NUMBER', 'WORD'))
-        tokens = tokenize([('NUMBER', '1.45'), ('__EOF__', '')])
+        tokens = tokenize([('NUMBER', '1.45')])
 
         with self.assertRaises(textparser.Error) as cm:
             grammar.parse(tokens)
@@ -47,18 +46,24 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(Choice('NUMBER', 'WORD'))
 
         datas = [
-            ([('WORD', 'm')], 'm'),
-            ([('NUMBER', '5')], '5')
+            (
+                [('WORD', 'm')],
+                'm'
+            ),
+            (
+                [('NUMBER', '5')],
+                '5'
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
     def test_choice_mismatch(self):
         grammar = Grammar(Choice('NUMBER', 'WORD'))
-        tokens = tokenize([(',', ','), ('__EOF__', '')])
+        tokens = tokenize([(',', ',')])
 
         with self.assertRaises(textparser.Error) as cm:
             grammar.parse(tokens)
@@ -70,19 +75,25 @@ class TextParserTest(unittest.TestCase):
                                      Sequence('WORD')))
 
         datas = [
-            ([('WORD', 'm')], ['m']),
-            ([('NUMBER', '5')], ['5'])
+            (
+                [('WORD', 'm')],
+                ['m']
+            ),
+            (
+                [('NUMBER', '5')],
+                ['5']
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
     def test_choice_dict_mismatch(self):
         grammar = Grammar(ChoiceDict(Sequence('NUMBER'),
                                      Sequence('WORD')))
-        tokens = tokenize([(',', ','), ('__EOF__', '')])
+        tokens = tokenize([(',', ',')])
 
         with self.assertRaises(textparser.Error) as cm:
             grammar.parse(tokens)
@@ -93,12 +104,18 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(DelimitedList('WORD'))
 
         datas = [
-            ([('WORD', 'foo')], ['foo']),
-            ([('WORD', 'foo'), (',', ','), ('WORD', 'bar')], ['foo', 'bar'])
+            (
+                [('WORD', 'foo')],
+                ['foo']
+            ),
+            (
+                [('WORD', 'foo'), (',', ','), ('WORD', 'bar')],
+                ['foo', 'bar']
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -110,7 +127,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
 
             with self.assertRaises(textparser.Error) as cm:
                 grammar.parse(tokens)
@@ -121,13 +138,22 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(ZeroOrMore('WORD'))
 
         datas = [
-            ([], []),
-            ([('WORD', 'foo')], ['foo']),
-            ([('WORD', 'foo'), ('WORD', 'bar')], ['foo', 'bar'])
+            (
+                [],
+                []
+            ),
+            (
+                [('WORD', 'foo')],
+                ['foo']
+            ),
+            (
+                [('WORD', 'foo'), ('WORD', 'bar')],
+                ['foo', 'bar']
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -148,7 +174,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -156,12 +182,18 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(OneOrMore('WORD'))
 
         datas = [
-            ([('WORD', 'foo')], ['foo']),
-            ([('WORD', 'foo'), ('WORD', 'bar')], ['foo', 'bar'])
+            (
+                [('WORD', 'foo')],
+                ['foo']
+            ),
+            (
+                [('WORD', 'foo'), ('WORD', 'bar')],
+                ['foo', 'bar']
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -174,7 +206,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
 
             with self.assertRaises(textparser.Error) as cm:
                 grammar.parse(tokens)
@@ -194,7 +226,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -206,7 +238,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
 
             with self.assertRaises(textparser.Error) as cm:
                 grammar.parse(tokens)
@@ -231,8 +263,14 @@ class TextParserTest(unittest.TestCase):
 
     def test_create_token_re(self):
         datas = [
-            ([('A', r'a')], '(?P<A>a)'),
-            ([('A', r'b'), ('C', r'd')], '(?P<A>b)|(?P<C>d)')
+            (
+                [('A', r'a')],
+                '(?P<A>a)'
+            ),
+            (
+                [('A', r'b'), ('C', r'd')],
+                '(?P<A>b)|(?P<C>d)'
+            )
         ]
 
         for spec, re_token in datas:
@@ -242,12 +280,18 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(Any())
 
         datas = [
-            ([('A', r'a')], 'a'),
-            ([('B', r'b')], 'b')
+            (
+                [('A', r'a')],
+                'a'
+            ),
+            (
+                [('B', r'b')],
+                'b'
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -286,7 +330,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
+            tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
 
     def test_forward(self):
@@ -295,11 +339,14 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(foo)
 
         datas = [
-            ([('FOO', 'foo')], ['foo'])
+            (
+                [('FOO', 'foo')],
+                ['foo']
+            )
         ]
 
         for tokens, expected_tree in datas:
-            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
+            tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
 
     def test_optional(self):
@@ -331,7 +378,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tree = grammar.parse(tokenize(tokens + [('__EOF__', '')]))
+            tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
 
 

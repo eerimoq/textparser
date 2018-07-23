@@ -107,8 +107,6 @@ def tokenize(string):
 
             raise tp.TokenizerError(line, column, mo.start(), string)
 
-    tokens.append(tp.Token('__EOF__', None, None, None))
-
     return tokens
 
 

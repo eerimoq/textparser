@@ -10,6 +10,9 @@ __version__ = '0.4.0'
 class _Tokens(object):
 
     def __init__(self, tokens):
+        if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
+            tokens.append(Token('__EOF__', None, None, None))
+
         self._tokens = tokens
         self._pos = 0
         self._stack = []
