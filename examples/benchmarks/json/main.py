@@ -26,12 +26,12 @@ from __future__ import print_function
 import sys
 import os
 
-import textparser_json
-import lark_json
-import pyparsing_json
+from parsers import textparser_json
+from parsers import lark_json
+from parsers import pyparsing_json
 
 if sys.version_info[0] > 2:
-    import parsita_json
+    from parsers import parsita_json
 else:
     class parsita_json(object):
 
