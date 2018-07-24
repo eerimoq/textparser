@@ -1,6 +1,7 @@
 import re
 import timeit
 
+import textparser
 from textparser import tokenize_init
 from textparser import Token
 from textparser import TokenizeError
@@ -72,6 +73,6 @@ def parse(json_string, iterations):
     grammar = Grammar(value)
 
     def _parse():
-        grammar.parse(tokenize(json_string))
+        textparser.parse(json_string, tokenize, grammar)
 
     return timeit.timeit(_parse, number=iterations)

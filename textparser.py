@@ -70,23 +70,40 @@ class Error(Exception):
     pass
 
 
+
+def _format_invalid_syntax(string, offset):
+    return 'Invalid syntax at line {}, column {}: "{}"'.format(
+        line(string, offset),
+        column(string, offset),
+        markup_line(string, offset))
+
+
 class TokenizeError(Error):
 
     def __init__(self, string, offset):
-        message = 'Invalid syntax at line {}, column {}: "{}"'.format(
-            line(string, offset),
-            column(string, offset),
-            markup_line(string, offset))
-        super(TokenizeError, self).__init__(message)
-        self.offset = offset
         self.string = string
+        self.offset = offset
+        message = _format_invalid_syntax(string, offset)
+        super(TokenizeError, self).__init__(message)
 
 
 class GrammarError(Error):
 
     def __init__(self, offset):
-        super(GrammarError, self).__init__('')
         self.offset = offset
+        message = 'Invalid syntax at offset {}.'.format(offset)
+        super(GrammarError, self).__init__(message)
+
+
+class ParseError(Error):
+
+    def __init__(self, string, offset):
+        self.string = string
+        self.offset = offset
+        self.line = line(string, offset)
+        self.column = column(string, offset)
+        message = _format_invalid_syntax(string, offset)
+        super(ParseError, self).__init__(message)
 
 
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
@@ -446,3 +463,17 @@ def tokenize_init(spec):
     ])
 
     return tokens, re_token
+
+
+def parse(string, tokenize, grammar):
+    """Parse given string `string` using given tokenize function
+    `tokenize` and grammar `grammar`.
+
+    """
+
+    try:
+        return grammar.parse(tokenize(string))
+    except TokenizeError as e:
+        raise ParseError(string, e.offset)
+    except GrammarError as e:
+        raise ParseError(string, e.offset)
