@@ -22,7 +22,7 @@ from textparser import Forward
 
 
 def tokenize(items):
-    return [Token(*item, line=1, column=2) for item in items]
+    return [Token(*item, offset=1) for item in items]
 
 
 class TextParserTest(unittest.TestCase):
@@ -314,19 +314,17 @@ class TextParserTest(unittest.TestCase):
 
     def test_tokenizer_error(self):
         datas = [
-            (2, 'hej', 'he>>!<<j'),
-            (0, 'a\nb\n', '>>!<<a'),
-            (1, 'a\nb\n', 'a>>!<<'),
-            (2, 'a\nb\n', '>>!<<b')
+            (2, 'hej', 'Invalid syntax at line 1, column 3: "he>>!<<j"'),
+            (0, 'a\nb\n', 'Invalid syntax at line 1, column 1: ">>!<<a"'),
+            (1, 'a\nb\n', 'Invalid syntax at line 1, column 2: "a>>!<<"'),
+            (2, 'a\nb\n', 'Invalid syntax at line 2, column 1: ">>!<<b"')
         ]
 
         for offset, string, message in datas:
             with self.assertRaises(TokenizeError) as cm:
-                raise TokenizeError(0, 1, offset, string)
+                raise TokenizeError(string, offset)
 
-            self.assertEqual(
-                str(cm.exception),
-                'Invalid syntax at line 0, column 1: "{}"'.format(message))
+            self.assertEqual(str(cm.exception), message)
 
     def test_create_token_re(self):
         datas = [
@@ -341,9 +339,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for spec, expected_re_token in datas:
-            line, line_start, tokens, re_token = tokenize_init(spec)
-            self.assertEqual(line, 1)
-            self.assertEqual(line_start, -1)
+            tokens, re_token = tokenize_init(spec)
             self.assertEqual(tokens, [])
             self.assertEqual(re_token, expected_re_token)
 

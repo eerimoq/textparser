@@ -12,7 +12,7 @@ class _Tokens(object):
 
     def __init__(self, tokens):
         if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
-            tokens.append(Token('__EOF__', None, None, None))
+            tokens.append(Token('__EOF__', None, -1))
 
         self._tokens = tokens
         self._pos = 0
@@ -72,19 +72,17 @@ class Error(Exception):
 
 class TokenizeError(Error):
 
-    def __init__(self, line, column, offset, string):
+    def __init__(self, string, offset):
         message = 'Invalid syntax at line {}, column {}: "{}"'.format(
-            line,
-            column,
+            line(string, offset),
+            column(string, offset),
             markup_line(string, offset))
         super(TokenizeError, self).__init__(message)
-        self.line = line
-        self.column = column
         self.offset = offset
         self.string = string
 
 
-Token = namedtuple('Token', ['kind', 'value', 'line', 'column'])
+Token = namedtuple('Token', ['kind', 'value', 'offset'])
 
 
 class Pattern(object):
@@ -424,12 +422,20 @@ def markup_line(string, offset):
     return string[begin:offset] + '>>!<<' + string[offset:end]
 
 
+def line(string, offset):
+    return string[:offset].count('\n') + 1
+
+
+def column(string, offset):
+    line_start = string.rfind('\n', 0, offset)
+
+    return offset - line_start
+
+
 def tokenize_init(spec):
-    line = 1
-    line_start = -1
     tokens = []
     re_token = '|'.join([
         '(?P<{}>{})'.format(name, regex) for name, regex in spec
     ])
 
-    return line, line_start, tokens, re_token
+    return tokens, re_token

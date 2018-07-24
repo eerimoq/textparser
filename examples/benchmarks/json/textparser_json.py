@@ -24,12 +24,11 @@ def tokenize(string):
     }
 
     spec = [
-        ('SKIP',     r'[ \r\t]+'),
+        ('SKIP',     r'[ \r\n\t]+'),
         ('NUMBER',   r'-?\d+(\.\d+)?([eE][+-]?\d+)?'),
         ('TRUE',     r'true'),
         ('FALSE',    r'false'),
         ('NULL',     r'null'),
-        ('NEWLINE',  r'\n'),
         ('STRING',   r'"(\\"|[^"])*?"'),
         ('LPAREN',   r'\('),
         ('RPAREN',   r'\)'),
@@ -42,31 +41,24 @@ def tokenize(string):
         ('MISMATCH', r'.')
     ]
 
-    line, line_start, tokens, re_token = tokenize_init(spec)
+    tokens, re_token = tokenize_init(spec)
 
     for mo in re.finditer(re_token, string, re.DOTALL):
         kind = mo.lastgroup
 
         if kind == 'SKIP':
             pass
-        elif kind == 'NEWLINE':
-            line_start = mo.end() - 1
-            line += 1
         elif kind == 'STRING':
-            column = mo.start() - line_start
-            tokens.append(Token(kind, mo.group(kind)[1:-1], line, column))
+            tokens.append(Token(kind, mo.group(kind)[1:-1], mo.start()))
         elif kind != 'MISMATCH':
             value = mo.group(kind)
 
             if kind in names:
                 kind = names[kind]
 
-            column = mo.start() - line_start
-            tokens.append(Token(kind, value, line, column))
+            tokens.append(Token(kind, value, mo.start()))
         else:
-            column = mo.start() - line_start
-
-            raise TokenizeError(line, column, mo.start(), string)
+            raise TokenizeError(string, mo.start())
 
     return tokens
 
