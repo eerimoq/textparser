@@ -464,6 +464,16 @@ class TextParserTest(unittest.TestCase):
                     ('NUMBER', '1', 2)
                 ],
                 2
+            ),
+            (
+                [
+                    ('IF', 'IF', 1),
+                    ('STRING', 'foo', 2),
+                    ('WORD', 'bar', 3),
+                    ('.', '.', 4),
+                    ('.', '.', 5)
+                ],
+                5
             )
         ]
 

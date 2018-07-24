@@ -5,7 +5,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.7.0'
+__version__ = '0.8.0'
 
 
 class _Tokens(object):
@@ -421,7 +421,7 @@ class Grammar(object):
         tokens = _Tokens(tokens)
         parsed = self._root.match(tokens)
 
-        if parsed is not None and tokens.get().kind == '__EOF__':
+        if parsed is not None and tokens.peek().kind == '__EOF__':
             return parsed
         else:
             raise GrammarError(tokens.get().offset)
