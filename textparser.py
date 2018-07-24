@@ -82,6 +82,13 @@ class TokenizeError(Error):
         self.string = string
 
 
+class GrammarError(Error):
+
+    def __init__(self, offset):
+        super(GrammarError, self).__init__('')
+        self.offset = offset
+
+
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
 
 
@@ -400,7 +407,7 @@ class Grammar(object):
         if parsed is not None and tokens.get().kind == '__EOF__':
             return parsed
         else:
-            raise Error
+            raise GrammarError(tokens.get().offset)
 
 
 def choice(*members):

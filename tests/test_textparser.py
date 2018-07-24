@@ -22,7 +22,17 @@ from textparser import Forward
 
 
 def tokenize(items):
-    return [Token(*item, offset=1) for item in items]
+    tokens = []
+
+    for item in items:
+        if len(item) == 2:
+            token = Token(*item, offset=1)
+        else:
+            token = Token(*item)
+
+        tokens.append(token)
+
+    return tokens
 
 
 class TextParserTest(unittest.TestCase):
@@ -40,10 +50,10 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(Sequence('NUMBER', 'WORD'))
         tokens = tokenize([('NUMBER', '1.45')])
 
-        with self.assertRaises(textparser.Error) as cm:
+        with self.assertRaises(textparser.GrammarError) as cm:
             grammar.parse(tokens)
 
-        self.assertEqual(str(cm.exception), '')
+        self.assertEqual(cm.exception.offset, -1)
 
     def test_choice(self):
         grammar = Grammar(Choice('NUMBER', 'WORD'))
@@ -66,12 +76,12 @@ class TextParserTest(unittest.TestCase):
 
     def test_choice_mismatch(self):
         grammar = Grammar(Choice('NUMBER', 'WORD'))
-        tokens = tokenize([(',', ',')])
+        tokens = tokenize([(',', ',', 5)])
 
-        with self.assertRaises(textparser.Error) as cm:
+        with self.assertRaises(textparser.GrammarError) as cm:
             grammar.parse(tokens)
 
-        self.assertEqual(str(cm.exception), '')
+        self.assertEqual(cm.exception.offset, 5)
 
     def test_choice_dict(self):
         grammar = Grammar(ChoiceDict(Sequence('NUMBER'), 'WORD'))
@@ -95,12 +105,12 @@ class TextParserTest(unittest.TestCase):
     def test_choice_dict_mismatch(self):
         grammar = Grammar(ChoiceDict(Sequence('NUMBER'),
                                      Sequence('WORD')))
-        tokens = tokenize([(',', ',')])
+        tokens = tokenize([(',', ',', 3)])
 
         with self.assertRaises(textparser.Error) as cm:
             grammar.parse(tokens)
 
-        self.assertEqual(str(cm.exception), '')
+        self.assertEqual(cm.exception.offset, 3)
 
     def test_delimited_list(self):
         grammar = Grammar(DelimitedList('WORD'))
@@ -131,10 +141,10 @@ class TextParserTest(unittest.TestCase):
         for tokens in datas:
             tokens = tokenize(tokens)
 
-            with self.assertRaises(textparser.Error) as cm:
+            with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(str(cm.exception), '')
+            self.assertEqual(cm.exception.offset, -1)
 
     def test_zero_or_more(self):
         grammar = Grammar(ZeroOrMore('WORD'))
@@ -227,17 +237,23 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(OneOrMore('WORD'))
 
         datas = [
-            [],
-            [('NUMBER', 'foo')]
+            (
+                []
+                , -1
+            ),
+            (
+                [('NUMBER', 'foo', 2)],
+                2
+            )
         ]
 
-        for tokens in datas:
+        for tokens, offset in datas:
             tokens = tokenize(tokens)
 
-            with self.assertRaises(textparser.Error) as cm:
+            with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(str(cm.exception), '')
+            self.assertEqual(cm.exception.offset, offset)
 
     def test_one_or_more_end(self):
         grammar = Grammar(
@@ -260,16 +276,16 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(OneOrMore('WORD', Sequence('WORD', 'NUMBER')))
 
         datas = [
-            [('WORD', 'bar'), ('NUMBER', '1')]
+            [('WORD', 'bar', 1), ('NUMBER', '1', 2)]
         ]
 
         for tokens in datas:
             tokens = tokenize(tokens)
 
-            with self.assertRaises(textparser.Error) as cm:
+            with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(str(cm.exception), '')
+            self.assertEqual(cm.exception.offset, 1)
 
     def test_one_or_more_dict(self):
         grammar = Grammar(OneOrMoreDict(Sequence('WORD', 'NUMBER')))
@@ -307,10 +323,10 @@ class TextParserTest(unittest.TestCase):
         for tokens in datas:
             tokens = tokenize(tokens)
 
-            with self.assertRaises(textparser.Error) as cm:
+            with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(str(cm.exception), '')
+            self.assertEqual(cm.exception.offset, -1)
 
     def test_tokenizer_error(self):
         datas = [
@@ -400,6 +416,52 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
 
+    def test_1_mismatch(self):
+        grammar = Grammar(Sequence(
+            'IF',
+            Inline(choice(Sequence(choice('A', 'B'), 'STRING'),
+                          'STRING')),
+            'WORD',
+            choice(
+                Sequence(
+                    choice(DelimitedList('STRING'), ZeroOrMore('NUMBER')), '.'),
+            '.')))
+
+        datas = [
+            (
+                [
+                    ('IF', 'IF', 1),
+                    ('STRING', 'foo', 2),
+                    ('WORD', 'bar', 3),
+                    (',', ',', 4)
+                ],
+                4
+            ),
+            (
+                [
+                    ('IF', 'IF', 1),
+                    ('STRING', 'foo', 2),
+                    ('.', '.', 3)
+                ],
+                3
+            ),
+            (
+                [
+                    ('IF', 'IF', 1),
+                    ('NUMBER', '1', 2)
+                ],
+                2
+            )
+        ]
+
+        for tokens, offset in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(cm.exception.offset, offset)
+
     def test_forward(self):
         foo = Forward()
         foo <<= Sequence('FOO')
@@ -483,10 +545,10 @@ class TextParserTest(unittest.TestCase):
         for tokens in datas:
             tokens = tokenize(tokens)
 
-            with self.assertRaises(textparser.Error) as cm:
+            with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(str(cm.exception), '')
+            self.assertEqual(cm.exception.offset, 1)
 
 
 if __name__ == '__main__':
