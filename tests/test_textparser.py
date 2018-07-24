@@ -604,6 +604,51 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(tokens, [])
             self.assertEqual(re_token, expected_re_token)
 
+    def test_parser(self):
+        class Parser(textparser.Parser):
+
+            def keywords(self):
+                return set([
+                    'IF',
+                    'A',
+                    'B'
+                ])
+
+            def token_specs(self):
+                return [
+                    ('SKIP',                r'[ \r\n\t]+'),
+                    ('NUMBER',              r'-?\d+(\.\d+)?([eE][+-]?\d+)?'),
+                    ('DOT',            '.', r'\.'),
+                    ('WORD',                r'[A-Za-z0-9_]+'),
+                    ('ESCAPED_STRING',      r'"(\\"|[^"])*?"'),
+                    ('MISMATCH',            r'.')
+                ]
+
+            def grammar(self):
+                return Grammar(Sequence(
+                    'IF',
+                    Optional(choice('A', 'B')),
+                    'ESCAPED_STRING',
+                    'WORD',
+                    Optional(choice(DelimitedList('ESCAPED_STRING'),
+                                    ZeroOrMore('NUMBER'))),
+                    '.'))
+
+        datas = [
+            (
+                'IF "foo" bar .',
+                ['IF', [], 'foo', 'bar', [[]], '.']
+            ),
+            (
+                'IF B "" b 1 2 .',
+                ['IF', ['B'], '', 'b', [['1', '2']], '.']
+            )
+        ]
+
+        for string, expected_tree in datas:
+            tree = Parser().parse(string)
+            self.assertEqual(tree, expected_tree)
+
 
 if __name__ == '__main__':
     unittest.main()

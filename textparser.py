@@ -1,5 +1,6 @@
 # A text parser.
 
+import re
 from collections import namedtuple
 from operator import itemgetter
 
@@ -477,3 +478,82 @@ def parse(string, tokenize, grammar):
         raise ParseError(string, e.offset)
     except GrammarError as e:
         raise ParseError(string, e.offset)
+
+
+class Parser(object):
+    """A parser.
+
+    """
+
+    def keywords(self):
+        """Keywords in the text.
+
+        """
+
+        return set()
+
+    def token_specs(self):
+        """The token specifications.
+
+        """
+
+        raise NotImplementedError('To be implemented by subclasses.')
+
+    def _unpack_token_specs(self):
+        names = {}
+        specs = []
+
+        for spec in self.token_specs():
+            if len(spec) == 2:
+                specs.append(spec)
+            else:
+                specs.append((spec[0], spec[2]))
+                names[spec[0]] = spec[1]
+
+        return names, specs
+
+    def tokenize(self, string):
+        """Tokenize the text.
+
+        """
+
+        names, specs = self._unpack_token_specs()
+        keywords = self.keywords()
+        tokens, re_token = tokenize_init(specs)
+
+        for mo in re.finditer(re_token, string, re.DOTALL):
+            kind = mo.lastgroup
+
+            if kind == 'SKIP':
+                pass
+            elif kind != 'MISMATCH':
+                value = mo.group(kind)
+
+                if value in keywords:
+                    kind = value
+
+                if kind in names:
+                    kind = names[kind]
+
+                if kind == 'ESCAPED_STRING':
+                    value = value[1:-1]
+
+                tokens.append(Token(kind, value, mo.start()))
+            else:
+                raise TokenizeError(string, mo.start())
+
+        return tokens
+
+    def grammar(self):
+        """The text grammar.
+
+        """
+
+        raise NotImplementedError('To be implemented by subclasses.')
+    
+    def parse(self, string):
+        """Parse given string `string` and return the parse tree.
+
+        """
+
+        return parse(string, self.tokenize, self.grammar())
