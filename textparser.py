@@ -466,36 +466,10 @@ def tokenize_init(spec):
     return tokens, re_token
 
 
-def parse(string, tokenize, grammar):
-    """Parse given string `string` using given tokenize function
-    `tokenize` and grammar `grammar`.
-
-    """
-
-    try:
-        return grammar.parse(tokenize(string))
-    except (TokenizeError, GrammarError) as e:
-        raise ParseError(string, e.offset)
-
-
 class Parser(object):
     """A parser.
 
     """
-
-    def keywords(self):
-        """Keywords in the text.
-
-        """
-
-        return set()
-
-    def token_specs(self):
-        """The token specifications.
-
-        """
-
-        raise NotImplementedError('To be implemented by subclasses.')
 
     def _unpack_token_specs(self):
         names = {}
@@ -509,6 +483,20 @@ class Parser(object):
                 names[spec[0]] = spec[1]
 
         return names, specs
+
+    def keywords(self):
+        """Keywords in the text.
+
+        """
+
+        return set()
+
+    def token_specs(self):
+        """The token specifications.
+
+        """
+
+        return []
 
     def tokenize(self, string):
         """Tokenize the text.
@@ -554,4 +542,7 @@ class Parser(object):
 
         """
 
-        return parse(string, self.tokenize, self.grammar())
+        try:
+            return self.grammar().parse(self.tokenize(string))
+        except (TokenizeError, GrammarError) as e:
+            raise ParseError(string, e.offset)

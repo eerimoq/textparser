@@ -37,50 +37,6 @@ def tokenize(items):
 
 class TextParserTest(unittest.TestCase):
 
-    def test_parse(self):
-        def _tokenize(_string):
-            return tokenize([
-                ('NUMBER', '1.45'),
-                ('WORD', 'm')
-            ])
-
-        grammar = Grammar(Sequence('NUMBER', 'WORD'))
-        tree = textparser.parse('', _tokenize, grammar)
-        self.assertEqual(tree, ['1.45', 'm'])
-
-    def test_parse_tokenize_mismatch(self):
-        def _tokenize(string):
-            raise TokenizeError(string, 5)
-
-        grammar = Grammar(Sequence('NUMBER', 'WORD'))
-
-        with self.assertRaises(textparser.ParseError) as cm:
-            textparser.parse('12\n3456\n789', _tokenize, grammar)
-
-        self.assertEqual(cm.exception.offset, 5)
-        self.assertEqual(cm.exception.line, 2)
-        self.assertEqual(cm.exception.column, 3)
-        self.assertEqual(str(cm.exception),
-                         'Invalid syntax at line 2, column 3: "34>>!<<56"')
-
-    def test_parse_grammar_mismatch(self):
-        def _tokenize(_string):
-            return tokenize([
-                ('NUMBER', '1.45', 0),
-                ('NUMBER', '2', 5)
-            ])
-
-        grammar = Grammar(Sequence('NUMBER', 'WORD'))
-
-        with self.assertRaises(textparser.ParseError) as cm:
-            textparser.parse('1.45 2', _tokenize, grammar)
-
-        self.assertEqual(cm.exception.offset, 5)
-        self.assertEqual(cm.exception.line, 1)
-        self.assertEqual(cm.exception.column, 6)
-        self.assertEqual(str(cm.exception),
-                         'Invalid syntax at line 1, column 6: "1.45 >>!<<2"')
-
     def test_grammar_sequence(self):
         grammar = Grammar(Sequence('NUMBER', 'WORD'))
         tokens = tokenize([
@@ -648,6 +604,45 @@ class TextParserTest(unittest.TestCase):
         for string, expected_tree in datas:
             tree = Parser().parse(string)
             self.assertEqual(tree, expected_tree)
+
+    def test_parser_tokenize_mismatch(self):
+        class Parser(textparser.Parser):
+
+            def tokenize(self, string):
+                raise TokenizeError(string, 5)
+
+            def grammar(self):
+                return Grammar(Sequence('NUMBER', 'WORD'))
+
+        with self.assertRaises(textparser.ParseError) as cm:
+            Parser().parse('12\n3456\n789')
+
+        self.assertEqual(cm.exception.offset, 5)
+        self.assertEqual(cm.exception.line, 2)
+        self.assertEqual(cm.exception.column, 3)
+        self.assertEqual(str(cm.exception),
+                         'Invalid syntax at line 2, column 3: "34>>!<<56"')
+
+    def test_parser_grammar_mismatch(self):
+        class Parser(textparser.Parser):
+
+            def tokenize(self, _string):
+                return tokenize([
+                    ('NUMBER', '1.45', 0),
+                    ('NUMBER', '2', 5)
+                ])
+
+            def grammar(self):
+                return Grammar(Sequence('NUMBER', 'WORD'))
+
+        with self.assertRaises(textparser.ParseError) as cm:
+            Parser().parse('1.45 2')
+
+        self.assertEqual(cm.exception.offset, 5)
+        self.assertEqual(cm.exception.line, 1)
+        self.assertEqual(cm.exception.column, 6)
+        self.assertEqual(str(cm.exception),
+                         'Invalid syntax at line 1, column 6: "1.45 >>!<<2"')
 
 
 if __name__ == '__main__':
