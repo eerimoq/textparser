@@ -6,17 +6,20 @@ Test data generated with https://www.json-generator.com.
 
 Example execution:
 
-$ ./main.py
-Parsing 'data.json' 3 times per parser. This may take a few seconds.
+$ env PYTHONPATH=. python3 examples/benchmarks/json/main.py
+Parsing 'examples/benchmarks/json/data.json' 1 times per parser. This may take a few seconds.
 
-Parsing 'data.json' 3 times took:
+Parsing 'examples/benchmarks/json/data.json' 1 times took:
 
 PACKAGE        SECONDS
-textparser     0.325401
-lark (LALR)    0.764833
-pyparsing      2.144760
-lark (Earley)  5.644952
-parsita        6.945121
+textparser     0.099870
+lark (LALR)    0.252110
+funcparserlib  0.349336
+parsimonious   0.386092
+pyparsing      0.720664
+parsy          0.940929
+lark (Earley)  1.823468
+parsita        2.435160
 $
 
 """
