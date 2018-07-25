@@ -474,9 +474,7 @@ def parse(string, tokenize, grammar):
 
     try:
         return grammar.parse(tokenize(string))
-    except TokenizeError as e:
-        raise ParseError(string, e.offset)
-    except GrammarError as e:
+    except (TokenizeError, GrammarError) as e:
         raise ParseError(string, e.offset)
 
 
@@ -550,7 +548,7 @@ class Parser(object):
         """
 
         raise NotImplementedError('To be implemented by subclasses.')
-    
+
     def parse(self, string):
         """Parse given string `string` and return the parse tree.
 
