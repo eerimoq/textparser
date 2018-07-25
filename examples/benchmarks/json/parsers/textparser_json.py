@@ -43,7 +43,7 @@ class Parser(textparser.Parser):
                          'FALSE',
                          'NULL')
 
-        return Grammar(value)
+        return value
 
 
 def parse(json_string, iterations):

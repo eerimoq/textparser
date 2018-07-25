@@ -543,6 +543,6 @@ class Parser(object):
         """
 
         try:
-            return self.grammar().parse(self.tokenize(string))
+            return Grammar(self.grammar()).parse(self.tokenize(string))
         except (TokenizeError, GrammarError) as e:
             raise ParseError(string, e.offset)

@@ -581,14 +581,14 @@ class TextParserTest(unittest.TestCase):
                 ]
 
             def grammar(self):
-                return Grammar(Sequence(
+                return Sequence(
                     'IF',
                     Optional(choice('A', 'B')),
                     'ESCAPED_STRING',
                     'WORD',
                     Optional(choice(DelimitedList('ESCAPED_STRING'),
                                     ZeroOrMore('NUMBER'))),
-                    '.'))
+                    '.')
 
         datas = [
             (
@@ -633,7 +633,7 @@ class TextParserTest(unittest.TestCase):
                 ])
 
             def grammar(self):
-                return Grammar(Sequence('NUMBER', 'WORD'))
+                return Sequence('NUMBER', 'WORD')
 
         with self.assertRaises(textparser.ParseError) as cm:
             Parser().parse('1.45 2')

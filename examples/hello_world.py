@@ -15,7 +15,7 @@ class Parser(textparser.Parser):
         ]
 
     def grammar(self):
-        return Grammar(Sequence('WORD', ',', 'WORD', '!'))
+        return Sequence('WORD', ',', 'WORD', '!')
 
 
 tree = Parser().parse('Hello, World!')
