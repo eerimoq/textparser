@@ -1,6 +1,5 @@
 import textparser
 from textparser import Sequence
-from textparser import Grammar
 
 
 class Parser(textparser.Parser):
