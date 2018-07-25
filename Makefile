@@ -2,6 +2,7 @@ test:
 	python2 setup.py test
 	python3 setup.py test
 	$(MAKE) test-sdist
+	env PYTHONPATH=. python3 examples/hello_world.py
 	env PYTHONPATH=. python3 examples/benchmarks/json/main.py
 	codespell -d $$(git ls-files | grep -v \.json)
 

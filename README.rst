@@ -29,7 +29,44 @@ Installation
 Example usage
 =============
 
-To be added.
+The `hello world`_ example parses the string ``Hello, World!`` and
+outputs its parse tree ``['Hello', ',', 'World', '!']``.
+
+The script:
+
+.. code-block:: python
+
+   import textparser
+   from textparser import Sequence
+   from textparser import Grammar
+
+
+   class Parser(textparser.Parser):
+
+       def token_specs(self):
+           return [
+               ('SKIP',          r'[ \r\n\t]+'),
+               ('WORD',          r'\w+'),
+               ('EMARK',    '!', r'!'),
+               ('COMMA',    ',', r','),
+               ('MISMATCH',      r'.')
+           ]
+
+       def grammar(self):
+           return Grammar(Sequence('WORD', ',', 'WORD', '!'))
+
+
+   tree = Parser().parse('Hello, World!')
+
+   print('Tree:', tree)
+
+Executing the script:
+
+.. code-block::
+
+   $ python3 examples/hello_world.py
+   Tree: ['Hello', ',', 'World', '!']
+   $
 
 Contributing
 ============
@@ -64,3 +101,4 @@ Contributing
 .. _pretty fast: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/main.py#L15-L25
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Lark: https://github.com/lark-parser/lark
+.. _hello world: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
