@@ -66,14 +66,11 @@ def parse_json(seq):
     op_ = lambda s: skip(op(s))
     n = lambda s: a(Token('Name', s)) >> tokval
 
-    def make_string(n):
-        return n[1:-1]
-
     null = n('null')
     true = n('true')
     false = n('false')
     number = toktype('Number')
-    string = toktype('String') >> make_string
+    string = toktype('String')
     value = forward_decl()
     member = string + op_(':') + value
     object_ = (op_('{') +

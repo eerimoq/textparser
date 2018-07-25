@@ -593,11 +593,11 @@ class TextParserTest(unittest.TestCase):
         datas = [
             (
                 'IF "foo" bar .',
-                ['IF', [], 'foo', 'bar', [[]], '.']
+                ['IF', [], '"foo"', 'bar', [[]], '.']
             ),
             (
                 'IF B "" b 1 2 .',
-                ['IF', ['B'], '', 'b', [['1', '2']], '.']
+                ['IF', ['B'], '""', 'b', [['1', '2']], '.']
             )
         ]
 

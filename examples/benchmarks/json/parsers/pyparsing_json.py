@@ -7,7 +7,6 @@ import timeit
 from pyparsing import Keyword
 from pyparsing import Suppress
 from pyparsing import dblQuotedString
-from pyparsing import removeQuotes
 from pyparsing import Forward
 from pyparsing import Group
 from pyparsing import delimitedList
@@ -23,7 +22,7 @@ def parse(json_string, iterations):
 
     LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(Suppress, '[]{}:')
 
-    string = dblQuotedString().setParseAction(removeQuotes)
+    string = dblQuotedString()
     number = pyparsing_common.number()
 
     object_ = Forward()

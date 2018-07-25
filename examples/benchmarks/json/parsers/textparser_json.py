@@ -5,7 +5,6 @@ from textparser import Forward
 from textparser import Sequence
 from textparser import DelimitedList
 from textparser import choice
-from textparser import Grammar
 from textparser import Optional
 
 

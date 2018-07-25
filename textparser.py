@@ -521,9 +521,6 @@ class Parser(object):
                 if kind in names:
                     kind = names[kind]
 
-                if kind == 'ESCAPED_STRING':
-                    value = value[1:-1]
-
                 tokens.append(Token(kind, value, mo.start()))
             else:
                 raise TokenizeError(string, mo.start())
