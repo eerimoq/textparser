@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.9.0'
+__version__ = '0.10.0'
 
 
 class _Tokens(object):
