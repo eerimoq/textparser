@@ -1,3 +1,6 @@
 lark-parser
 pyparsing
 parsita
+funcparserlib
+parsy
+parsimonious

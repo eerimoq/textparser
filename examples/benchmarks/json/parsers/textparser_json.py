@@ -6,6 +6,7 @@ from textparser import Sequence
 from textparser import DelimitedList
 from textparser import choice
 from textparser import Grammar
+from textparser import Optional
 
 
 class Parser(textparser.Parser):
@@ -31,9 +32,9 @@ class Parser(textparser.Parser):
 
     def grammar(self):
         value = Forward()
-        list_ = Sequence('[', DelimitedList(value), ']')
+        list_ = Sequence('[', Optional(DelimitedList(value)), ']')
         pair = Sequence('ESCAPED_STRING', ':', value)
-        dict_ = Sequence('{', DelimitedList(pair), '}')
+        dict_ = Sequence('{', Optional(DelimitedList(pair)), '}')
         value <<= choice(list_,
                          dict_,
                          'ESCAPED_STRING',

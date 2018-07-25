@@ -18,20 +18,9 @@
     "registered": "2014-05-02T12:55:23 -02:00",
     "latitude": -76.500941,
     "longitude": -1.513774,
-    "tags": [
-      "veniam",
-      "non",
-      "in",
-      "aliqua",
-      "occaecat",
-      "cillum",
-      "culpa"
-    ],
+    "tags": [],
     "friends": [
-      {
-        "id": 0,
-        "name": "Consuelo Bush"
-      },
+      {},
       {
         "id": 1,
         "name": "Karyn Howe"
