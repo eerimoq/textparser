@@ -29,7 +29,7 @@ Installation
 Example usage
 =============
 
-The `hello world`_ example parses the string ``Hello, World!`` and
+The `Hello World`_ example parses the string ``Hello, World!`` and
 outputs its parse tree ``['Hello', ',', 'World', '!']``.
 
 The script:
@@ -60,7 +60,7 @@ The script:
 
    print('Tree:', tree)
 
-Executing the script:
+Script execution:
 
 .. code-block::
 
@@ -101,4 +101,4 @@ Contributing
 .. _pretty fast: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/main.py#L15-L25
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Lark: https://github.com/lark-parser/lark
-.. _hello world: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
+.. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
