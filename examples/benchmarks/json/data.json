@@ -6,7 +6,7 @@
     "isActive": true,
     "balance": "$2,288.97",
     "picture": "http://placehold.it/32x32",
-    "age": 39,
+    "age": null,
     "eyeColor": "green",
     "name": "Hewitt Mckenzie",
     "gender": "male",
