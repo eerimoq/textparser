@@ -124,12 +124,12 @@ class TextParserTest(unittest.TestCase):
             ),
             (
                 (Sequence(Sequence('WORD')), ),
-                "First sequence member must be a string, not "
+                "First sequence pattern must be a string, not "
                 "<class 'textparser.Sequence'>."
             ),
             (
                 (Choice('WORD'), ),
-                "Supported member types are Sequence and str, not "
+                "Supported pattern types are Sequence and str, not "
                 "<class 'textparser.Choice'>."
             )
         ]

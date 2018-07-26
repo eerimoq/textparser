@@ -9,38 +9,6 @@ __author__ = 'Erik Moqvist'
 __version__ = '0.11.0'
 
 
-class Tokens(object):
-
-    def __init__(self, tokens):
-        if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
-            tokens.append(Token('__EOF__', None, -1))
-
-        self._tokens = tokens
-        self._pos = 0
-        self._stack = []
-
-    def get(self):
-        pos = self._pos
-        self._pos += 1
-
-        return self._tokens[pos]
-
-    def peek(self):
-        return self._tokens[self._pos]
-
-    def save(self):
-        self._stack.append(self._pos)
-
-    def restore(self):
-        self._pos = self._stack.pop()
-
-    def drop(self):
-        self._stack.pop()
-
-    def __repr__(self):
-        return str(self._tokens[self._pos:self._pos + 2])
-
-
 class _String(object):
     """Matches a specific token kind.
 
@@ -67,16 +35,15 @@ def _wrap_strings(items):
     return [_wrap_string(item) for item in items]
 
 
-class Error(Exception):
-    pass
-
-
-
 def _format_invalid_syntax(string, offset):
     return 'Invalid syntax at line {}, column {}: "{}"'.format(
         line(string, offset),
         column(string, offset),
         markup_line(string, offset))
+
+
+class Error(Exception):
+    pass
 
 
 class TokenizeError(Error):
@@ -110,6 +77,38 @@ class ParseError(Error):
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
 
 
+class Tokens(object):
+
+    def __init__(self, tokens):
+        if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
+            tokens.append(Token('__EOF__', None, -1))
+
+        self._tokens = tokens
+        self._pos = 0
+        self._stack = []
+
+    def get(self):
+        pos = self._pos
+        self._pos += 1
+
+        return self._tokens[pos]
+
+    def peek(self):
+        return self._tokens[self._pos]
+
+    def save(self):
+        self._stack.append(self._pos)
+
+    def restore(self):
+        self._pos = self._stack.pop()
+
+    def drop(self):
+        self._stack.pop()
+
+    def __repr__(self):
+        return str(self._tokens[self._pos:self._pos + 2])
+
+
 class Pattern(object):
 
     def match(self, tokens):
@@ -121,19 +120,19 @@ class Sequence(Pattern):
 
     """
 
-    def __init__(self, *members):
-        self.members = _wrap_strings(members)
+    def __init__(self, *patterns):
+        self.patterns = _wrap_strings(patterns)
 
     def match(self, tokens):
         matched = []
 
-        for member in self.members:
-            mo = member.match(tokens)
+        for pattern in self.patterns:
+            mo = pattern.match(tokens)
 
             if mo is None:
                 return None
 
-            if isinstance(member, Inline) and isinstance(mo, list):
+            if isinstance(pattern, Inline) and isinstance(mo, list):
                 matched.extend(mo)
             else:
                 matched.append(mo)
@@ -146,13 +145,13 @@ class Choice(Pattern):
 
     """
 
-    def __init__(self, *members):
-        self._members = _wrap_strings(members)
+    def __init__(self, *patterns):
+        self._patterns = _wrap_strings(patterns)
 
     def match(self, tokens):
-        for member in self._members:
+        for pattern in self._patterns:
             tokens.save()
-            mo = member.match(tokens)
+            mo = pattern.match(tokens)
 
             if mo is not None:
                 tokens.drop()
@@ -167,57 +166,57 @@ class Choice(Pattern):
 class ChoiceDict(Pattern):
     """Matches any of given patterns.
 
-    The first token kind of all members must be unique, otherwise and
+    The first token kind of all patterns must be unique, otherwise and
     Error exception is raised.
 
     """
 
-    def __init__(self, *members):
-        self._members_map = {}
-        members = _wrap_strings(members)
+    def __init__(self, *patterns):
+        self._patterns_map = {}
+        patterns = _wrap_strings(patterns)
 
-        for member in members:
-            if isinstance(member, _String):
-                self._add_member(member.kind, member)
-            elif isinstance(member, Sequence):
-                first_member = member.members[0]
+        for pattern in patterns:
+            if isinstance(pattern, _String):
+                self._add_pattern(pattern.kind, pattern)
+            elif isinstance(pattern, Sequence):
+                first_pattern = pattern.patterns[0]
 
-                if not isinstance(first_member, _String):
+                if not isinstance(first_pattern, _String):
                     raise Error(
-                        'First sequence member must be a string, not {}.'.format(
-                            type(first_member)))
+                        'First sequence pattern must be a string, not {}.'.format(
+                            type(first_pattern)))
 
-                self._add_member(first_member.kind, member)
+                self._add_pattern(first_pattern.kind, pattern)
             else:
                 raise Error(
-                    'Supported member types are Sequence and str, not {}.'.format(
-                        type(member)))
+                    'Supported pattern types are Sequence and str, not {}.'.format(
+                        type(pattern)))
 
-    def _add_member(self, kind, member):
-        if kind in self._members_map:
+    def _add_pattern(self, kind, pattern):
+        if kind in self._patterns_map:
             raise Error(
                 "First token kind must be unique, but {} isn't.".format(
                     kind))
 
-        self._members_map[kind] = member
+        self._patterns_map[kind] = pattern
 
     def match(self, tokens):
         kind = tokens.peek().kind
 
-        if kind in self._members_map:
-            return self._members_map[kind].match(tokens)
+        if kind in self._patterns_map:
+            return self._patterns_map[kind].match(tokens)
         else:
             return None
 
 
 class Repeated(Pattern):
-    """Matches given pattern `element` at least `minimum_length` times and
+    """Matches given pattern `pattern` at least `minimum_length` times and
     returns the matches as a list.
 
     """
 
-    def __init__(self, element, end=None, minimum_length=0):
-        self._element = _wrap_string(element)
+    def __init__(self, pattern, end=None, minimum_length=0):
+        self._pattern = _wrap_string(pattern)
 
         if end is not None:
             end = _wrap_string(end)
@@ -237,7 +236,7 @@ class Repeated(Pattern):
                 if mo is not None:
                     break
 
-            mo = self._element.match(tokens)
+            mo = self._pattern.match(tokens)
 
             if mo is None:
                 break
@@ -251,13 +250,13 @@ class Repeated(Pattern):
 
 
 class RepeatedDict(Repeated):
-    """Matches given pattern `element` at lead `minimum_length` times and
+    """Matches given pattern `pattern` at lead `minimum_length` times and
     returns the matches as a dictionary.
 
     """
 
-    def __init__(self, element, end=None, minimum_length=0, key=None):
-        super(RepeatedDict, self).__init__(element, end, minimum_length)
+    def __init__(self, pattern, end=None, minimum_length=0, key=None):
+        super(RepeatedDict, self).__init__(pattern, end, minimum_length)
 
         if key is None:
             key = itemgetter(0)
@@ -276,7 +275,7 @@ class RepeatedDict(Repeated):
                 if mo is not None:
                     break
 
-            mo = self._element.match(tokens)
+            mo = self._pattern.match(tokens)
 
             if mo is None:
                 break
@@ -295,39 +294,43 @@ class RepeatedDict(Repeated):
 
 
 class ZeroOrMore(Repeated):
-    """Matches a pattern zero or more times.
+    """Matches `pattern` zero or more times and returns the matches as a
+    list.
 
     """
 
-    def __init__(self, element, end=None):
-        super(ZeroOrMore, self).__init__(element, end, 0)
+    def __init__(self, pattern, end=None):
+        super(ZeroOrMore, self).__init__(pattern, end, 0)
 
 
 class ZeroOrMoreDict(RepeatedDict):
-    """Matches a pattern zero or more times.
+    """Matches `pattern` zero or more times and returns the matches as a
+    dictionary.
 
     """
 
-    def __init__(self, element, end=None, key=None):
-        super(ZeroOrMoreDict, self).__init__(element, end, 0, key)
+    def __init__(self, pattern, end=None, key=None):
+        super(ZeroOrMoreDict, self).__init__(pattern, end, 0, key)
 
 
 class OneOrMore(Repeated):
-    """Matches a pattern one or more times.
+    """Matches `pattern` one or more times and returns the matches as a
+    list.
 
     """
 
-    def __init__(self, element, end=None):
-        super(OneOrMore, self).__init__(element, end, 1)
+    def __init__(self, pattern, end=None):
+        super(OneOrMore, self).__init__(pattern, end, 1)
 
 
 class OneOrMoreDict(RepeatedDict):
-    """Matches a pattern one or more times.
+    """Matches `pattern` one or more times and returns the matches as a
+    dictionary.
 
     """
 
-    def __init__(self, element, end=None, key=None):
-        super(OneOrMoreDict, self).__init__(element, end, 1, key)
+    def __init__(self, pattern, end=None, key=None):
+        super(OneOrMoreDict, self).__init__(pattern, end, 1, key)
 
 
 class Any(Pattern):
@@ -340,20 +343,20 @@ class Any(Pattern):
 
 
 class DelimitedList(Pattern):
-    """Matches a delimented list of given pattern.
+    """Matches a delimented list of `pattern` separated by `delim`.
 
     """
 
-    def __init__(self, element, delim=','):
-        self._element = _wrap_string(element)
+    def __init__(self, pattern, delim=','):
+        self._pattern = _wrap_string(pattern)
         self._delim = _wrap_string(delim)
 
     def match(self, tokens):
         matched = []
 
         while True:
-            # Element.
-            mo = self._element.match(tokens)
+            # Pattern.
+            mo = self._pattern.match(tokens)
 
             if mo is None:
                 return None
@@ -368,15 +371,15 @@ class DelimitedList(Pattern):
 
 
 class Optional(Pattern):
-    """Matches a pattern zero or one times.
+    """Matches `pattern` zero or one times.
 
     """
 
-    def __init__(self, element):
-        self._element = _wrap_string(element)
+    def __init__(self, pattern):
+        self._pattern = _wrap_string(pattern)
 
     def match(self, tokens):
-        mo = self._element.match(tokens)
+        mo = self._pattern.match(tokens)
 
         if mo is None:
             return []
@@ -440,11 +443,11 @@ class Grammar(object):
             raise GrammarError(tokens.get().offset)
 
 
-def choice(*members):
+def choice(*patterns):
     try:
-        return ChoiceDict(*members)
+        return ChoiceDict(*patterns)
     except Error:
-        return Choice(*members)
+        return Choice(*patterns)
 
 
 def markup_line(string, offset):
@@ -479,7 +482,7 @@ def tokenize_init(spec):
 
 
 class Parser(object):
-    """A parser.
+    """The abstract base class of all text parsers.
 
     """
 
@@ -504,14 +507,36 @@ class Parser(object):
         return set()
 
     def token_specs(self):
-        """The token specifications.
+        """The token specifications with token name, regular expression, and
+        optionally a user friendly name.
+
+        Two token specification forms are available; ``(kind, re)`` or
+        ``(kind, name, re)``. If the second form is used, the grammar
+        should use `name` instead of `kind`.
+
+        .. code-block:: python
+
+           def token_specs(self):
+               return [
+                   ('SKIP',          r'[ \\r\\n\\t]+'),
+                   ('WORD',          r'\\w+'),
+                   ('EMARK',    '!', r'!'),
+                   ('COMMA',    ',', r','),
+                   ('MISMATCH',      r'.')
+               ]
+
 
         """
 
         return []
 
     def tokenize(self, string):
-        """Tokenize the text.
+        """Tokenize given text `string`, and return a list of tokens.
+
+        This method should only be called by
+        :func:`~textparser.Parser.parse()`, but may very well be
+        overridden if the default implementation does not match the
+        parser needs.
 
         """
 
@@ -540,7 +565,14 @@ class Parser(object):
         return tokens
 
     def grammar(self):
-        """The text grammar.
+        """The text grammar is used to create a parse tree out of a list of
+        tokens.
+
+        .. code-block:: python
+
+           def grammar(self):
+               return Sequence('WORD', ',', 'WORD', '!')
+
 
         """
 
@@ -548,6 +580,11 @@ class Parser(object):
 
     def parse(self, string):
         """Parse given string `string` and return the parse tree.
+
+        .. code-block:: python
+
+           >>> Parser().parse('Hello, World!')
+           ['Hello', ',', 'World', '!']
 
         """
 

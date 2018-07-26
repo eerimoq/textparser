@@ -61,7 +61,7 @@ The script:
 
 Script execution:
 
-.. code-block::
+.. code-block:: text
 
    $ python3 examples/hello_world.py
    Tree: ['Hello', ',', 'World', '!']
