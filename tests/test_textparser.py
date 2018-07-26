@@ -112,6 +112,34 @@ class TextParserTest(unittest.TestCase):
 
         self.assertEqual(cm.exception.offset, 3)
 
+    def test_grammar_choice_dict_init(self):
+        datas = [
+            (
+                ('WORD', 'WORD'),
+                "First token kind must be unique, but WORD isn't."
+            ),
+            (
+                ('WORD', Sequence('WORD')),
+                "First token kind must be unique, but WORD isn't."
+            ),
+            (
+                (Sequence(Sequence('WORD')), ),
+                "First sequence member must be a string, not "
+                "<class 'textparser.Sequence'>."
+            ),
+            (
+                (Choice('WORD'), ),
+                "Supported member types are Sequence and str, not "
+                "<class 'textparser.Choice'>."
+            )
+        ]
+
+        for grammar, message in datas:
+            with self.assertRaises(textparser.Error) as cm:
+                ChoiceDict(*grammar)
+
+            self.assertEqual(str(cm.exception), message)
+
     def test_grammar_delimited_list(self):
         grammar = Grammar(DelimitedList('WORD'))
 

@@ -9,7 +9,7 @@ __author__ = 'Erik Moqvist'
 __version__ = '0.11.0'
 
 
-class _Tokens(object):
+class Tokens(object):
 
     def __init__(self, tokens):
         if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
@@ -167,6 +167,9 @@ class Choice(Pattern):
 class ChoiceDict(Pattern):
     """Matches any of given patterns.
 
+    The first token kind of all members must be unique, otherwise and
+    Error exception is raised.
+
     """
 
     def __init__(self, *members):
@@ -175,21 +178,28 @@ class ChoiceDict(Pattern):
 
         for member in members:
             if isinstance(member, _String):
-                if member.kind in self._members_map:
-                    raise Error
+                self._add_member(member.kind, member)
+            elif isinstance(member, Sequence):
+                first_member = member.members[0]
 
-                self._members_map[member.kind] = member
+                if not isinstance(first_member, _String):
+                    raise Error(
+                        'First sequence member must be a string, not {}.'.format(
+                            type(first_member)))
+
+                self._add_member(first_member.kind, member)
             else:
-                if not isinstance(member, Sequence):
-                    raise Error
+                raise Error(
+                    'Supported member types are Sequence and str, not {}.'.format(
+                        type(member)))
 
-                if not isinstance(member.members[0], _String):
-                    raise Error
+    def _add_member(self, kind, member):
+        if kind in self._members_map:
+            raise Error(
+                "First token kind must be unique, but {} isn't.".format(
+                    kind))
 
-                if member.members[0].kind in self._members_map:
-                    raise Error
-
-                self._members_map[member.members[0].kind] = member
+        self._members_map[kind] = member
 
     def match(self, tokens):
         kind = tokens.peek().kind
@@ -201,7 +211,8 @@ class ChoiceDict(Pattern):
 
 
 class Repeated(Pattern):
-    """Matches a pattern zero or more times.
+    """Matches given pattern `element` at least `minimum_length` times and
+    returns the matches as a list.
 
     """
 
@@ -240,7 +251,8 @@ class Repeated(Pattern):
 
 
 class RepeatedDict(Repeated):
-    """Matches a pattern zero or more times.
+    """Matches given pattern `element` at lead `minimum_length` times and
+    returns the matches as a dictionary.
 
     """
 
@@ -419,7 +431,7 @@ class Grammar(object):
         self._root = grammar
 
     def parse(self, tokens):
-        tokens = _Tokens(tokens)
+        tokens = Tokens(tokens)
         parsed = self._root.match(tokens)
 
         if parsed is not None and tokens.peek().kind == '__EOF__':
