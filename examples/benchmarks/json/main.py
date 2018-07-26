@@ -7,9 +7,9 @@ Test data generated with https://www.json-generator.com.
 Example execution:
 
 $ env PYTHONPATH=. python3 examples/benchmarks/json/main.py
-Parsing 'examples/benchmarks/json/data.json' 1 times per parser. This may take a few seconds.
+Parsing 'examples/benchmarks/json/data.json' 1 time(s) per parser. This may take a few seconds.
 
-Parsing 'examples/benchmarks/json/data.json' 1 times took:
+Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
 
 PACKAGE        SECONDS
 textparser     0.099870
@@ -63,7 +63,7 @@ with open(DATA_JSON, 'r') as fin:
     JSON_STRING = fin.read()
 
 
-print("Parsing '{}' {} times per parser. This may take a few seconds.".format(
+print("Parsing '{}' {} time(s) per parser. This may take a few seconds.".format(
     DATA_JSON,
     ITERATIONS))
 
@@ -91,7 +91,7 @@ measurements = [
 measurements = sorted(measurements, key=lambda m: m[1])
 
 print()
-print("Parsing '{}' {} times took:".format(DATA_JSON, ITERATIONS))
+print("Parsing '{}' {} time(s) took:".format(DATA_JSON, ITERATIONS))
 print()
 print('PACKAGE        SECONDS')
 

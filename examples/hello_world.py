@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# > python3 hello_world.py
+# Tree: ['Hello', ',', 'World', '!']
+#
+
 import textparser
 from textparser import Sequence
 
