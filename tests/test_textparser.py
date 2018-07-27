@@ -1,4 +1,5 @@
 import unittest
+from collections import namedtuple
 
 import textparser
 from textparser import Grammar
@@ -21,7 +22,7 @@ from textparser import Tag
 from textparser import Forward
 
 
-def tokenize(items):
+def tokenize(items, add_eof_token=True):
     tokens = []
 
     for item in items:
@@ -31,6 +32,9 @@ def tokenize(items):
             token = Token(*item)
 
         tokens.append(token)
+
+    if add_eof_token:
+        tokens.append(Token('__EOF__', None, -1))
 
     return tokens
 
@@ -75,25 +79,44 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(tree, expected_tree)
 
     def test_grammar_choice_mismatch(self):
-        grammar = Grammar(Choice('NUMBER', 'WORD'))
-        tokens = tokenize([(',', ',', 5)])
+        grammar = Grammar(Choice(Sequence('NUMBER', 'WORD'),
+                                 'WORD'))
 
-        with self.assertRaises(textparser.GrammarError) as cm:
-            grammar.parse(tokens)
+        datas = [
+            ([('NUMBER', '1', 5)], -1),
+            ([('NUMBER', '1', 5), ('NUMBER', '2', 7)], 7)
+        ]
 
-        self.assertEqual(cm.exception.offset, 5)
+        for tokens, line in datas:
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokenize(tokens))
+
+            self.assertEqual(cm.exception.offset, line)
 
     def test_grammar_choice_dict(self):
-        grammar = Grammar(ChoiceDict(Sequence('NUMBER'), 'WORD'))
+        number = Forward()
+        number <<= Sequence('NUMBER')
+        grammar = Grammar(ChoiceDict(number,
+                                     Tag('foo', Inline(Sequence('WORD'))),
+                                     ChoiceDict('BAR'),
+                                     'FIE'))
 
         datas = [
             (
                 [('WORD', 'm')],
-                'm'
+                ('foo', ['m'])
             ),
             (
                 [('NUMBER', '5')],
                 ['5']
+            ),
+            (
+                [('BAR', 'foo')],
+                'foo'
+            ),
+            (
+                [('FIE', 'fum')],
+                'fum'
             )
         ]
 
@@ -123,14 +146,8 @@ class TextParserTest(unittest.TestCase):
                 "First token kind must be unique, but WORD isn't."
             ),
             (
-                (Sequence(Sequence('WORD')), ),
-                "First sequence pattern must be a string, not "
-                "<class 'textparser.Sequence'>."
-            ),
-            (
-                (Choice('WORD'), ),
-                "Supported pattern types are Sequence and str, not "
-                "<class 'textparser.Choice'>."
+                (Sequence(Sequence(Optional('WORD'))), ),
+                "Unsupported pattern type <class 'textparser.Optional'>."
             )
         ]
 
@@ -671,6 +688,80 @@ class TextParserTest(unittest.TestCase):
         self.assertEqual(cm.exception.column, 6)
         self.assertEqual(str(cm.exception),
                          'Invalid syntax at line 1, column 6: "1.45 >>!<<2"')
+
+    def test_parser_grammar_mismatch_choice_max(self):
+        class Parser(textparser.Parser):
+
+            def __init__(self, tokens):
+                self._tokens = tokens
+
+            def tokenize(self, _string):
+                return tokenize(self._tokens, add_eof_token=False)
+
+            def grammar(self):
+                return Choice(Sequence('NUMBER', 'WORD'),
+                              'WORD')
+
+        Data = namedtuple('Data',
+                          [
+                              'text',
+                              'tokens',
+                              'offset',
+                              'line',
+                              'column',
+                              'message',
+                          ])
+
+        datas = [
+            Data(
+                text='1.45',
+                tokens=[
+                    ('NUMBER', '1.45', 0)
+                ],
+                offset=4,
+                line=1,
+                column=5,
+                message='Invalid syntax at line 1, column 5: "1.45>>!<<"'
+            ),
+            Data(
+                text='1.45 2',
+                tokens=[
+                    ('NUMBER', '1.45', 0),
+                    ('NUMBER', '2', 5)
+                ],
+                offset=5,
+                line=1,
+                column=6,
+                message='Invalid syntax at line 1, column 6: "1.45 >>!<<2"'
+            )
+        ]
+
+        for text, tokens, offset, line, column, message in datas:
+            with self.assertRaises(textparser.ParseError) as cm:
+                Parser(tokens).parse(text)
+
+            self.assertEqual(cm.exception.offset, offset)
+            self.assertEqual(cm.exception.line, line)
+            self.assertEqual(cm.exception.column, column)
+            self.assertEqual(str(cm.exception), message)
+
+    def test_parser_grammar_mismatch_zero_or_more_end_max(self):
+        class Parser(textparser.Parser):
+
+            def tokenize(self, _string):
+                return tokenize([('TEXT', 'foo', 0)], add_eof_token=False)
+
+            def grammar(self):
+                return ZeroOrMore('NUMBER', end=Sequence('TEXT', 'WORD'))
+
+        with self.assertRaises(textparser.ParseError) as cm:
+            Parser().parse('foo')
+
+        self.assertEqual(cm.exception.offset, 0)
+        self.assertEqual(cm.exception.line, 1)
+        self.assertEqual(cm.exception.column, 1)
+        self.assertEqual(str(cm.exception),
+                         'Invalid syntax at line 1, column 1: ">>!<<foo"')
 
 
 if __name__ == '__main__':

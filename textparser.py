@@ -80,11 +80,9 @@ Token = namedtuple('Token', ['kind', 'value', 'offset'])
 class Tokens(object):
 
     def __init__(self, tokens):
-        if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
-            tokens.append(Token('__EOF__', None, -1))
-
         self._tokens = tokens
         self._pos = 0
+        self._max_pos = -1
         self._stack = []
 
     def get(self):
@@ -96,11 +94,23 @@ class Tokens(object):
     def peek(self):
         return self._tokens[self._pos]
 
+    def peek_max(self):
+        pos = self._pos
+
+        if self._max_pos > pos:
+            pos = self._max_pos
+
+        return self._tokens[pos]
+
     def save(self):
         self._stack.append(self._pos)
 
     def restore(self):
         self._pos = self._stack.pop()
+
+    def mark_max(self):
+        if self._pos > self._max_pos:
+            self._max_pos = self._pos
 
     def drop(self):
         self._stack.pop()
@@ -158,6 +168,7 @@ class Choice(Pattern):
 
                 return mo
 
+            tokens.mark_max()
             tokens.restore()
 
         return None
@@ -176,21 +187,25 @@ class ChoiceDict(Pattern):
         patterns = _wrap_strings(patterns)
 
         for pattern in patterns:
-            if isinstance(pattern, _String):
-                self._add_pattern(pattern.kind, pattern)
-            elif isinstance(pattern, Sequence):
-                first_pattern = pattern.patterns[0]
+            self._check_pattern(pattern, pattern)
 
-                if not isinstance(first_pattern, _String):
-                    raise Error(
-                        'First sequence pattern must be a string, not {}.'.format(
-                            type(first_pattern)))
+    @property
+    def patterns_map(self):
+        return self._patterns_map
 
-                self._add_pattern(first_pattern.kind, pattern)
-            else:
-                raise Error(
-                    'Supported pattern types are Sequence and str, not {}.'.format(
-                        type(pattern)))
+    def _check_pattern(self, inner, outer):
+        if isinstance(inner, _String):
+            self._add_pattern(inner.kind, outer)
+        elif isinstance(inner, Sequence):
+            self._check_pattern(inner.patterns[0], outer)
+        elif isinstance(inner, (Inline, Tag, Forward)):
+            self._check_pattern(inner.pattern, outer)
+        elif isinstance(inner, ChoiceDict):
+            for pattern in inner.patterns_map.values():
+                self._check_pattern(pattern, outer)
+        else:
+            raise Error(
+                'Unsupported pattern type {}.'.format(type(inner)))
 
     def _add_pattern(self, kind, pattern):
         if kind in self._patterns_map:
@@ -378,6 +393,10 @@ class Optional(Pattern):
     def __init__(self, pattern):
         self._pattern = _wrap_string(pattern)
 
+    @property
+    def pattern(self):
+        return self._pattern
+
     def match(self, tokens):
         mo = self._pattern.match(tokens)
 
@@ -389,21 +408,29 @@ class Optional(Pattern):
 
 class Inline(Pattern):
 
-    def __init__(self, inner):
-        self._inner = inner
+    def __init__(self, pattern):
+        self._pattern = pattern
+
+    @property
+    def pattern(self):
+        return self._pattern
 
     def match(self, tokens):
-        return self._inner.match(tokens)
+        return self._pattern.match(tokens)
 
 
 class Tag(Pattern):
 
-    def __init__(self, name, inner):
+    def __init__(self, name, pattern):
         self._name = name
-        self._inner = _wrap_string(inner)
+        self._pattern = _wrap_string(pattern)
+
+    @property
+    def pattern(self):
+        return self._pattern
 
     def match(self, tokens):
-        mo = self._inner.match(tokens)
+        mo = self._pattern.match(tokens)
 
         if mo is not None:
             return (self._name, mo)
@@ -414,15 +441,19 @@ class Tag(Pattern):
 class Forward(Pattern):
 
     def __init__(self):
-        self._inner = None
+        self._pattern = None
+
+    @property
+    def pattern(self):
+        return self._pattern
 
     def __ilshift__(self, other):
-        self._inner = other
+        self._pattern = other
 
         return self
 
     def match(self, tokens):
-        return self._inner.match(tokens)
+        return self._pattern.match(tokens)
 
 
 class Grammar(object):
@@ -437,10 +468,10 @@ class Grammar(object):
         tokens = Tokens(tokens)
         parsed = self._root.match(tokens)
 
-        if parsed is not None and tokens.peek().kind == '__EOF__':
+        if parsed is not None and tokens.peek_max().kind == '__EOF__':
             return parsed
         else:
-            raise GrammarError(tokens.get().offset)
+            raise GrammarError(tokens.peek_max().offset)
 
 
 def choice(*patterns):
@@ -589,6 +620,11 @@ class Parser(object):
         """
 
         try:
-            return Grammar(self.grammar()).parse(self.tokenize(string))
+            tokens = self.tokenize(string)
+
+            if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
+                tokens.append(Token('__EOF__', None, len(string)))
+
+            return Grammar(self.grammar()).parse(tokens)
         except (TokenizeError, GrammarError) as e:
             raise ParseError(string, e.offset)
