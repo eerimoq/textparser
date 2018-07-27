@@ -17,7 +17,6 @@ from textparser import TokenizeError
 from textparser import tokenize_init
 from textparser import Any
 from textparser import Optional
-from textparser import Inline
 from textparser import Tag
 from textparser import Forward
 
@@ -97,7 +96,7 @@ class TextParserTest(unittest.TestCase):
         number = Forward()
         number <<= Sequence('NUMBER')
         grammar = Grammar(ChoiceDict(number,
-                                     Tag('foo', Inline(Sequence('WORD'))),
+                                     Tag('foo', Sequence('WORD')),
                                      ChoiceDict('BAR'),
                                      'FIE'))
 
@@ -395,8 +394,8 @@ class TextParserTest(unittest.TestCase):
     def test_grammar_1(self):
         grammar = Grammar(Sequence(
             'IF',
-            Inline(choice(Sequence(choice('A', 'B'), 'STRING'),
-                          'STRING')),
+            choice(Sequence(choice('A', 'B'), 'STRING'),
+                   'STRING'),
             'WORD',
             choice(
                 Sequence(
@@ -433,8 +432,8 @@ class TextParserTest(unittest.TestCase):
     def test_grammar_1_mismatch(self):
         grammar = Grammar(Sequence(
             'IF',
-            Inline(choice(Sequence(choice('A', 'B'), 'STRING'),
-                          'STRING')),
+            choice(Sequence(choice('A', 'B'), 'STRING'),
+                   'STRING'),
             'WORD',
             choice(
                 Sequence(

@@ -151,10 +151,7 @@ class Sequence(Pattern):
             if mo is None:
                 return None
 
-            if isinstance(pattern, Inline) and isinstance(mo, list):
-                matched.extend(mo)
-            else:
-                matched.append(mo)
+            matched.append(mo)
 
         return matched
 
@@ -207,7 +204,7 @@ class ChoiceDict(Pattern):
             self._add_pattern(inner.kind, outer)
         elif isinstance(inner, Sequence):
             self._check_pattern(inner.patterns[0], outer)
-        elif isinstance(inner, (Inline, Tag, Forward)):
+        elif isinstance(inner, (Tag, Forward)):
             self._check_pattern(inner.pattern, outer)
         elif isinstance(inner, ChoiceDict):
             for pattern in inner.patterns_map.values():
@@ -413,19 +410,6 @@ class Optional(Pattern):
             return []
         else:
             return [mo]
-
-
-class Inline(Pattern):
-
-    def __init__(self, pattern):
-        self._pattern = pattern
-
-    @property
-    def pattern(self):
-        return self._pattern
-
-    def match(self, tokens):
-        return self._pattern.match(tokens)
 
 
 class Tag(Pattern):
