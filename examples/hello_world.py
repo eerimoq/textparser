@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# > python3 hello_world.py
+# > env PYTHONPATH=.. python3 hello_world.py
 # Tree: ['Hello', ',', 'World', '!']
 #
 
