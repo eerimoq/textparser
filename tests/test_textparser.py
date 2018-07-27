@@ -638,17 +638,42 @@ class TextParserTest(unittest.TestCase):
         datas = [
             (
                 'IF "foo" bar .',
-                ['IF', [], '"foo"', 'bar', [[]], '.']
+                ['IF', [], '"foo"', 'bar', [[]], '.'],
+                [
+                    Token(kind='IF', value='IF', offset=0),
+                    [],
+                    Token(kind='ESCAPED_STRING', value='"foo"', offset=3),
+                    Token(kind='WORD', value='bar', offset=9),
+                    [[]],
+                    Token(kind='.', value='.', offset=13)
+                ]
             ),
             (
                 'IF B "" b 1 2 .',
-                ['IF', ['B'], '""', 'b', [['1', '2']], '.']
+                ['IF', ['B'], '""', 'b', [['1', '2']], '.'],
+                [
+                    Token(kind='IF', value='IF', offset=0),
+                    [
+                        Token(kind='B', value='B', offset=3)
+                    ],
+                    Token(kind='ESCAPED_STRING', value='""', offset=5),
+                    Token(kind='WORD', value='b', offset=8),
+                    [
+                        [
+                            Token(kind='NUMBER', value='1', offset=10),
+                            Token(kind='NUMBER', value='2', offset=12)
+                        ]
+                    ],
+                    Token(kind='.', value='.', offset=14)
+                ]
             )
         ]
 
-        for string, expected_tree in datas:
+        for string, expected_tree, expected_token_tree in datas:
             tree = Parser().parse(string)
             self.assertEqual(tree, expected_tree)
+            tree = Parser().parse(string, token_tree=True)
+            self.assertEqual(tree, expected_token_tree)
 
     def test_parser_tokenize_mismatch(self):
         class Parser(textparser.Parser):

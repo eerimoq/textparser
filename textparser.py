@@ -19,7 +19,7 @@ class _String(object):
 
     def match(self, tokens):
         if self.kind == tokens.peek().kind:
-            return tokens.get().value
+            return tokens.get_value()
         else:
             return None
 
@@ -85,7 +85,7 @@ class Tokens(object):
         self._max_pos = -1
         self._stack = []
 
-    def get(self):
+    def get_value(self):
         pos = self._pos
         self._pos += 1
 
@@ -117,6 +117,15 @@ class Tokens(object):
 
     def __repr__(self):
         return str(self._tokens[self._pos:self._pos + 2])
+
+
+class StringTokens(Tokens):
+
+    def get_value(self):
+        pos = self._pos
+        self._pos += 1
+
+        return self._tokens[pos].value
 
 
 class Pattern(object):
@@ -354,7 +363,7 @@ class Any(Pattern):
     """
 
     def match(self, tokens):
-        return tokens.get().value
+        return tokens.get_value()
 
 
 class DelimitedList(Pattern):
@@ -464,8 +473,12 @@ class Grammar(object):
     def __init__(self, grammar):
         self._root = grammar
 
-    def parse(self, tokens):
-        tokens = Tokens(tokens)
+    def parse(self, tokens, token_tree=False):
+        if token_tree:
+            tokens = Tokens(tokens)
+        else:
+            tokens = StringTokens(tokens)
+
         parsed = self._root.match(tokens)
 
         if parsed is not None and tokens.peek_max().kind == '__EOF__':
@@ -609,8 +622,10 @@ class Parser(object):
 
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def parse(self, string):
+    def parse(self, string, token_tree=False):
         """Parse given string `string` and return the parse tree.
+
+        Returns a parse tree of tokens if `token_tree` is ``True``.
 
         .. code-block:: python
 
@@ -625,6 +640,6 @@ class Parser(object):
             if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
                 tokens.append(Token('__EOF__', None, len(string)))
 
-            return Grammar(self.grammar()).parse(tokens)
+            return Grammar(self.grammar()).parse(tokens, token_tree)
         except (TokenizeError, GrammarError) as e:
             raise ParseError(string, e.offset)
