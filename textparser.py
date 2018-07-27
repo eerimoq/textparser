@@ -512,6 +512,21 @@ def tokenize_init(spec):
 class Parser(object):
     """The abstract base class of all text parsers.
 
+    .. code-block:: python
+
+       >>> from textparser import Parser, Sequence
+       >>> class MyParser(Parser):
+       ...    def token_specs(self):
+       ...        return [
+       ...            ('SKIP',          r'[ \\r\\n\\t]+'),
+       ...            ('WORD',          r'\\w+'),
+       ...            ('EMARK',    '!', r'!'),
+       ...            ('COMMA',    ',', r','),
+       ...            ('MISMATCH',      r'.')
+       ...        ]
+       ...    def grammar(self):
+       ...        return Sequence('WORD', ',', 'WORD', '!')
+
     """
 
     def _unpack_token_specs(self):
@@ -541,17 +556,6 @@ class Parser(object):
         Two token specification forms are available; ``(kind, re)`` or
         ``(kind, name, re)``. If the second form is used, the grammar
         should use `name` instead of `kind`.
-
-        .. code-block:: python
-
-           def token_specs(self):
-               return [
-                   ('SKIP',          r'[ \\r\\n\\t]+'),
-                   ('WORD',          r'\\w+'),
-                   ('EMARK',    '!', r'!'),
-                   ('COMMA',    ',', r','),
-                   ('MISMATCH',      r'.')
-               ]
 
 
         """
@@ -596,11 +600,6 @@ class Parser(object):
         """The text grammar is used to create a parse tree out of a list of
         tokens.
 
-        .. code-block:: python
-
-           def grammar(self):
-               return Sequence('WORD', ',', 'WORD', '!')
-
 
         """
 
@@ -613,8 +612,15 @@ class Parser(object):
 
         .. code-block:: python
 
-           >>> Parser().parse('Hello, World!')
+           >>> MyParser().parse('Hello, World!')
            ['Hello', ',', 'World', '!']
+           >>> tree = MyParser().parse('Hello, World!', token_tree=True)
+           >>> from pprint import pprint
+           >>> pprint(tree)
+           [Token(kind='WORD', value='Hello', offset=0),
+            Token(kind=',', value=',', offset=5),
+            Token(kind='WORD', value='World', offset=7),
+            Token(kind='!', value='!', offset=12)]
 
         """
 

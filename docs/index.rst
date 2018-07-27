@@ -46,9 +46,6 @@ Functions and classes
 .. autoclass:: textparser.Optional
     :members:
 
-.. autoclass:: textparser.Inline
-    :members:
-
 .. autoclass:: textparser.Tag
     :members:
 

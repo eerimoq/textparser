@@ -36,6 +36,8 @@ The script:
 
 .. code-block:: python
 
+   from pprint import pprint
+
    import textparser
    from textparser import Sequence
 
@@ -56,16 +58,25 @@ The script:
 
 
    tree = Parser().parse('Hello, World!')
+   token_tree = Parser().parse('Hello, World!', token_tree=True)
 
    print('Tree:', tree)
+   print()
+   print('Token tree:')
+   pprint(token_tree)
 
 Script execution:
 
 .. code-block:: text
 
-   $ python3 examples/hello_world.py
+   $ env PYTHONPATH=. python3 examples/hello_world.py
    Tree: ['Hello', ',', 'World', '!']
-   $
+
+   Token tree:
+   [Token(kind='WORD', value='Hello', offset=0),
+    Token(kind=',', value=',', offset=5),
+    Token(kind='WORD', value='World', offset=7),
+    Token(kind='!', value='!', offset=12)]
 
 Contributing
 ============

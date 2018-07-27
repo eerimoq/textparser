@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# > env PYTHONPATH=.. python3 proto3.py
+# $ env PYTHONPATH=.. python3 proto3.py
 # Tree: [['syntax', '=', '"proto3"', ';'],
 #  [['import', ['public'], '"foo.bar"', ';'],
 #   ['option', ['java_package', []], '=', '"com.example.foo"', ';'],
