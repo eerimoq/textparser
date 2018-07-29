@@ -11,11 +11,16 @@ Text parser
 
 .. include:: ../README.rst
 
-Functions and classes
-=====================
+The parser class
+================
 
 .. autoclass:: textparser.Parser
     :members:
+
+Building the grammar
+====================
+
+The grammar built by combining the classes below and strings.
 
 .. autoclass:: textparser.Sequence
     :members:
@@ -64,6 +69,9 @@ Functions and classes
 .. autoclass:: textparser.Pattern
     :members:
 
+Exceptions
+==========
+
 .. autoclass:: textparser.ParseError
     :members:
 
@@ -72,6 +80,9 @@ Functions and classes
 
 .. autoclass:: textparser.GrammarError
     :members:
+
+Utility functions
+=================
 
 .. autofunction:: textparser.markup_line
 
