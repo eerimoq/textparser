@@ -35,11 +35,11 @@ def _wrap_strings(items):
     return [_wrap_string(item) for item in items]
 
 
-def _format_invalid_syntax(string, offset):
+def _format_invalid_syntax(text, offset):
     return 'Invalid syntax at line {}, column {}: "{}"'.format(
-        line(string, offset),
-        column(string, offset),
-        markup_line(string, offset))
+        line(text, offset),
+        column(text, offset),
+        markup_line(text, offset))
 
 
 class Error(Exception):
@@ -47,31 +47,98 @@ class Error(Exception):
 
 
 class TokenizeError(Error):
+    """This exception is raised when the text cannot be converted into
+    tokens.
 
-    def __init__(self, string, offset):
-        self.string = string
-        self.offset = offset
-        message = _format_invalid_syntax(string, offset)
+    """
+
+    def __init__(self, text, offset):
+        self._text = text
+        self._offset = offset
+        message = _format_invalid_syntax(text, offset)
         super(TokenizeError, self).__init__(message)
+
+    @property
+    def text(self):
+        """The input text to the tokenizer.
+
+        """
+
+        return self._text
+
+    @property
+    def offset(self):
+        """Offset into the text where the tokenizer failed.
+
+        """
+
+        return self._offset
 
 
 class GrammarError(Error):
+    """This exception is raised when the tokens cannot be converted into a
+    parse tree.
+
+    """
 
     def __init__(self, offset):
-        self.offset = offset
+        self._offset = offset
         message = 'Invalid syntax at offset {}.'.format(offset)
         super(GrammarError, self).__init__(message)
 
+    @property
+    def offset(self):
+        """Offset into the text where the parser failed.
+
+        """
+
+        return self._offset
+
 
 class ParseError(Error):
+    """This exception is raised when the parser fails to parse the text.
 
-    def __init__(self, string, offset):
-        self.string = string
-        self.offset = offset
-        self.line = line(string, offset)
-        self.column = column(string, offset)
-        message = _format_invalid_syntax(string, offset)
+    """
+
+    def __init__(self, text, offset):
+        self._text = text
+        self._offset = offset
+        self._line = line(text, offset)
+        self._column = column(text, offset)
+        message = _format_invalid_syntax(text, offset)
         super(ParseError, self).__init__(message)
+
+    @property
+    def text(self):
+        """The input text to the parser.
+
+        """
+
+        return self._text
+
+    @property
+    def offset(self):
+        """Offset into the text where the tokenizer failed.
+
+        """
+
+        return self._offset
+
+    @property
+    def line(self):
+        """Line where the parser failed.
+
+        """
+
+        return self._line
+
+    @property
+    def column(self):
+        """Column where the parser failed.
+
+        """
+
+        return self._column
 
 
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
@@ -143,7 +210,7 @@ class Pattern(object):
     """Base class of all patterns.
 
     """
-    
+
     def match(self, tokens):
         raise NotImplementedError('To be implemented by subclasses.')
 
@@ -554,24 +621,24 @@ def choice(*patterns):
         return Choice(*patterns)
 
 
-def markup_line(string, offset):
-    begin = string.rfind('\n', 0, offset)
+def markup_line(text, offset):
+    begin = text.rfind('\n', 0, offset)
     begin += 1
 
-    end = string.find('\n', offset)
+    end = text.find('\n', offset)
 
     if end == -1:
-        end = len(string)
+        end = len(text)
 
-    return string[begin:offset] + '>>!<<' + string[offset:end]
-
-
-def line(string, offset):
-    return string[:offset].count('\n') + 1
+    return text[begin:offset] + '>>!<<' + text[offset:end]
 
 
-def column(string, offset):
-    line_start = string.rfind('\n', 0, offset)
+def line(text, offset):
+    return text[:offset].count('\n') + 1
+
+
+def column(text, offset):
+    line_start = text.rfind('\n', 0, offset)
 
     return offset - line_start
 
@@ -638,8 +705,8 @@ class Parser(object):
 
         return []
 
-    def tokenize(self, string):
-        """Tokenize given text `string`, and return a list of tokens.
+    def tokenize(self, text):
+        """Tokenize given string `text`, and return a list of tokens.
 
         This method should only be called by
         :func:`~textparser.Parser.parse()`, but may very well be
@@ -652,7 +719,7 @@ class Parser(object):
         keywords = self.keywords()
         tokens, re_token = tokenize_init(specs)
 
-        for mo in re.finditer(re_token, string, re.DOTALL):
+        for mo in re.finditer(re_token, text, re.DOTALL):
             kind = mo.lastgroup
 
             if kind == 'SKIP':
@@ -668,7 +735,7 @@ class Parser(object):
 
                 tokens.append(Token(kind, value, mo.start()))
             else:
-                raise TokenizeError(string, mo.start())
+                raise TokenizeError(text, mo.start())
 
         return tokens
 
@@ -681,8 +748,8 @@ class Parser(object):
 
         raise NotImplementedError('To be implemented by subclasses.')
 
-    def parse(self, string, token_tree=False):
-        """Parse given string `string` and return the parse tree.
+    def parse(self, text, token_tree=False):
+        """Parse given string `text` and return the parse tree.
 
         Returns a parse tree of tokens if `token_tree` is ``True``.
 
@@ -701,11 +768,11 @@ class Parser(object):
         """
 
         try:
-            tokens = self.tokenize(string)
+            tokens = self.tokenize(text)
 
             if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
-                tokens.append(Token('__EOF__', None, len(string)))
+                tokens.append(Token('__EOF__', None, len(text)))
 
             return Grammar(self.grammar()).parse(tokens, token_tree)
         except (TokenizeError, GrammarError) as e:
-            raise ParseError(string, e.offset)
+            raise ParseError(text, e.offset)

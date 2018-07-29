@@ -729,7 +729,25 @@ class TextParserTest(unittest.TestCase):
 
             self.assertEqual(cm.exception.offset, 3)
 
-    def test_tokenizer_error(self):
+    def test_grammar_error(self):
+        grammar = Grammar(NoMatch())
+
+        datas = [
+            [('NUMBER', '1', 3)],
+            [('WORD', 'foo', 3)]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(cm.exception.offset, 3)
+            self.assertEqual(str(cm.exception),
+                             'Invalid syntax at offset 3.')
+
+    def test_tokenize_error(self):
         datas = [
             (2, 'hej', 'Invalid syntax at line 1, column 3: "he>>!<<j"'),
             (0, 'a\nb\n', 'Invalid syntax at line 1, column 1: ">>!<<a"'),
@@ -737,10 +755,12 @@ class TextParserTest(unittest.TestCase):
             (2, 'a\nb\n', 'Invalid syntax at line 2, column 1: ">>!<<b"')
         ]
 
-        for offset, string, message in datas:
+        for offset, text, message in datas:
             with self.assertRaises(TokenizeError) as cm:
-                raise TokenizeError(string, offset)
+                raise TokenizeError(text, offset)
 
+            self.assertEqual(cm.exception.text, text)
+            self.assertEqual(cm.exception.offset, offset)
             self.assertEqual(str(cm.exception), message)
 
     def test_create_token_re(self):
@@ -824,17 +844,17 @@ class TextParserTest(unittest.TestCase):
             )
         ]
 
-        for string, expected_tree, expected_token_tree in datas:
-            tree = Parser().parse(string)
+        for text, expected_tree, expected_token_tree in datas:
+            tree = Parser().parse(text)
             self.assertEqual(tree, expected_tree)
-            tree = Parser().parse(string, token_tree=True)
+            tree = Parser().parse(text, token_tree=True)
             self.assertEqual(tree, expected_token_tree)
 
     def test_parser_tokenize_mismatch(self):
         class Parser(textparser.Parser):
 
-            def tokenize(self, string):
-                raise TokenizeError(string, 5)
+            def tokenize(self, text):
+                raise TokenizeError(text, 5)
 
             def grammar(self):
                 return Grammar(Sequence('NUMBER', 'WORD'))
@@ -851,7 +871,7 @@ class TextParserTest(unittest.TestCase):
     def test_parser_grammar_mismatch(self):
         class Parser(textparser.Parser):
 
-            def tokenize(self, _string):
+            def tokenize(self, _text):
                 return tokenize([
                     ('NUMBER', '1.45', 0),
                     ('NUMBER', '2', 5)
@@ -875,7 +895,7 @@ class TextParserTest(unittest.TestCase):
             def __init__(self, tokens):
                 self._tokens = tokens
 
-            def tokenize(self, _string):
+            def tokenize(self, _text):
                 return tokenize(self._tokens, add_eof_token=False)
 
             def grammar(self):
@@ -928,7 +948,7 @@ class TextParserTest(unittest.TestCase):
     def test_parser_grammar_mismatch_zero_or_more_end_max(self):
         class Parser(textparser.Parser):
 
-            def tokenize(self, _string):
+            def tokenize(self, _text):
                 return tokenize([('TEXT', 'foo', 0)], add_eof_token=False)
 
             def grammar(self):
@@ -942,6 +962,25 @@ class TextParserTest(unittest.TestCase):
         self.assertEqual(cm.exception.column, 1)
         self.assertEqual(str(cm.exception),
                          'Invalid syntax at line 1, column 1: ">>!<<foo"')
+
+    def test_parse_error(self):
+        class Parser(textparser.Parser):
+
+            def tokenize(self, text):
+                raise TokenizeError(text, 5)
+
+            def grammar(self):
+                return Grammar(Sequence('NUMBER', 'WORD'))
+
+        with self.assertRaises(textparser.ParseError) as cm:
+            Parser().parse('12\n3456\n789')
+
+        self.assertEqual(cm.exception.text, '12\n3456\n789')
+        self.assertEqual(cm.exception.offset, 5)
+        self.assertEqual(cm.exception.line, 2)
+        self.assertEqual(cm.exception.column, 3)
+        self.assertEqual(str(cm.exception),
+                         'Invalid syntax at line 2, column 3: "34>>!<<56"')
 
 
 if __name__ == '__main__':

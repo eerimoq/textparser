@@ -64,4 +64,13 @@ Functions and classes
 .. autoclass:: textparser.Pattern
     :members:
 
+.. autoclass:: textparser.ParseError
+    :members:
+
+.. autoclass:: textparser.TokenizeError
+    :members:
+
+.. autoclass:: textparser.GrammarError
+    :members:
+
 .. autofunction:: textparser.tokenize_init
