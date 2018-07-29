@@ -28,6 +28,10 @@ parsy: "expected one of '"', '-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?', 
 
 parsimonious: "Rule 'json_file' didn't match at '' (line 1, column 1)."
 
+pyleri: "No exception raised!"
+
+textx: "None:1:1: error: Expected '[' or '{' at position (1, 1) => '*'."
+
 -----------------------------------------------------------------
 
 Input string between BEGIN and END:
@@ -42,7 +46,7 @@ END
 textparser: "Invalid syntax at line 3, column 10: "  {"a": {>>!<<]}""
 
 lark_lalr: "Unexpected token Token(RSQB, ']') at line 3, column 10.
-Expected: string, RBRACE, ESCAPED_STRING, pair
+Expected: ESCAPED_STRING, RBRACE, string, pair
 "
 
 lark_earley: "Unexpected token Token(RSQB, ']') at line 3, column 10.
@@ -61,6 +65,10 @@ parsimonious: "Rule 'members' didn't match at ']}
 ]
 ' (line 3, column 10)."
 
+pyleri: "No exception raised!"
+
+textx: "None:3:10: error: Expected STRING or '}' at position (3, 10) => '   {"a": {*]} ] '."
+
 -----------------------------------------------------------------
 
 Input string between BEGIN and END:
@@ -75,7 +83,7 @@ END
 textparser: "Invalid syntax at line 3, column 4: "  {>>!<<3: null}""
 
 lark_lalr: "Unexpected token Token(SIGNED_NUMBER, '3') at line 3, column 4.
-Expected: RBRACE, pair, ESCAPED_STRING, string
+Expected: RBRACE, pair, string, ESCAPED_STRING
 "
 
 lark_earley: "Unexpected token Token(SIGNED_NUMBER, '3') at line 3, column 4.
@@ -93,6 +101,10 @@ parsy: "expected one of '"', '}' at 2:3"
 parsimonious: "Rule 'members' didn't match at '3: null}
 ]
 ' (line 3, column 4)."
+
+pyleri: "No exception raised!"
+
+textx: "None:3:4: error: Expected STRING or '}' at position (3, 4) => '[   1,   {*3: null} ]'."
 
 -----------------------------------------------------------------
 
@@ -126,6 +138,10 @@ parsy: "expected one of '"', '-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?', 
 
 parsimonious: "Rule 'json_file' didn't match at 'nul
 ' (line 1, column 1)."
+
+pyleri: "No exception raised!"
+
+textx: "None:1:1: error: Expected '[' or '{' at position (1, 1) => '*nul '."
 $
 
 """
@@ -137,6 +153,7 @@ from parsers import lark_json
 from parsers import pyparsing_json
 from parsers import funcparserlib_json
 from parsers import parsimonious_json
+from parsers import textx_json
 
 try:
     from parsers import parsita_json
@@ -152,6 +169,15 @@ try:
     from parsers import parsy_json
 except:
     class parsy_json(object):
+
+        @staticmethod
+        def parse(_json_string):
+            raise Exception('Import failed!')
+
+try:
+    from parsers import pyleri_json
+except:
+    class pyleri_json(object):
 
         @staticmethod
         def parse(_json_string):
@@ -175,7 +201,9 @@ def parse(string):
         ('parsita', _parse(parsita_json.parse)),
         ('funcparserlib', _parse(funcparserlib_json.parse)),
         ('parsy', _parse(parsy_json.parse)),
-        ('parsimonious', _parse(parsimonious_json.parse))
+        ('parsimonious', _parse(parsimonious_json.parse)),
+        ('pyleri', _parse(pyleri_json.parse)),
+        ('textx', _parse(textx_json.parse))
     ]
 
     print('-----------------------------------------------------------------')

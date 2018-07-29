@@ -12,14 +12,16 @@ Parsing 'examples/benchmarks/json/data.json' 1 time(s) per parser. This may take
 Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
 
 PACKAGE        SECONDS
-textparser     0.100049
-lark (LALR)    0.251040
-funcparserlib  0.339087
-parsimonious   0.380170
-pyparsing      0.677518
-parsy          0.938273
-lark (Earley)  1.877682
-parsita        2.326168
+textparser     0.103197
+lark (LALR)    0.265257
+funcparserlib  0.354334
+parsimonious   0.396413
+textx          0.522437
+pyparsing      0.663877
+pyleri         0.809443
+parsy          0.948944
+lark (Earley)  1.855001
+parsita        2.327958
 $
 
 """
@@ -33,6 +35,7 @@ from parsers import lark_json
 from parsers import pyparsing_json
 from parsers import funcparserlib_json
 from parsers import parsimonious_json
+from parsers import textx_json
 
 try:
     from parsers import parsita_json
@@ -47,6 +50,15 @@ try:
     from parsers import parsy_json
 except:
     class parsy_json(object):
+
+        @staticmethod
+        def parse_time(_json_string, _iterations):
+            return float('inf')
+
+try:
+    from parsers import pyleri_json
+except:
+    class pyleri_json(object):
 
         @staticmethod
         def parse_time(_json_string, _iterations):
@@ -75,6 +87,8 @@ parsita_time = parsita_json.parse_time(JSON_STRING, ITERATIONS)
 funcparserlib_time = funcparserlib_json.parse_time(JSON_STRING, ITERATIONS)
 parsy_time = parsy_json.parse_time(JSON_STRING, ITERATIONS)
 parsimonious_time = parsimonious_json.parse_time(JSON_STRING, ITERATIONS)
+pyleri_time = pyleri_json.parse_time(JSON_STRING, ITERATIONS)
+textx_time = textx_json.parse_time(JSON_STRING, ITERATIONS)
 
 # Parse comparison output.
 measurements = [
@@ -85,7 +99,9 @@ measurements = [
     ('parsita', parsita_time),
     ('funcparserlib', funcparserlib_time),
     ('parsy', parsy_time),
-    ('parsimonious', parsimonious_time)
+    ('parsimonious', parsimonious_time),
+    ('pyleri', pyleri_time),
+    ('textx', textx_time)
 ]
 
 measurements = sorted(measurements, key=lambda m: m[1])

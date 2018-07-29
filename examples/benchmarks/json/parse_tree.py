@@ -35,13 +35,13 @@ pyparsing:
 [['"foo"', [['"bar"', [1, 2, 3]]]]]
 
 parsita:
-Import failed!
+Success(['foo', [['bar', ['1', '2', '3']]]])
 
 funcparserlib:
 ('"foo"', [('"bar"', ('1', ['2', '3']), [])])
 
 parsy:
-Import failed!
+['foo', [('bar', ['1', '2', '3'])]]
 
 parsimonious:
 <Node called "json_file" matching "[
@@ -265,6 +265,12 @@ parsimonious:
     ">
         <RegexNode called "ws" matching "
         ">
+
+pyleri:
+<pyleri.noderesult.NodeResult object at 0x7fb4596a2480>
+
+textx:
+<textx:Array instance at 0x7fb4596deeb8>
 $
 
 """
@@ -276,6 +282,7 @@ from parsers import lark_json
 from parsers import pyparsing_json
 from parsers import funcparserlib_json
 from parsers import parsimonious_json
+from parsers import textx_json
 
 try:
     from parsers import parsita_json
@@ -296,6 +303,15 @@ except:
         def parse(_json_string):
             return 'Import failed!'
 
+try:
+    from parsers import pyleri_json
+except:
+    class pyleri_json(object):
+
+        @staticmethod
+        def parse(_json_string):
+            return 'Import failed!'
+
 
 def parse(string):
     results = [
@@ -306,7 +322,9 @@ def parse(string):
         ('parsita', parsita_json.parse(string)),
         ('funcparserlib', funcparserlib_json.parse(string)),
         ('parsy', parsy_json.parse(string)),
-        ('parsimonious', parsimonious_json.parse(string))
+        ('parsimonious', parsimonious_json.parse(string)),
+        ('pyleri', pyleri_json.parse(string)),
+        ('textx', textx_json.parse(string))
     ]
 
     print('-----------------------------------------------------------------')
