@@ -686,7 +686,12 @@ class Parser(object):
         return names, specs
 
     def keywords(self):
-        """Keywords in the text.
+        """A set of keywords in the text.
+
+        .. code-block:: python
+
+           def keywords(self):
+               return set(['if', 'else'])
 
         """
 
@@ -699,7 +704,6 @@ class Parser(object):
         Two token specification forms are available; ``(kind, re)`` or
         ``(kind, name, re)``. If the second form is used, the grammar
         should use `name` instead of `kind`.
-
 
         """
 
@@ -749,7 +753,8 @@ class Parser(object):
         raise NotImplementedError('To be implemented by subclasses.')
 
     def parse(self, text, token_tree=False):
-        """Parse given string `text` and return the parse tree.
+        """Parse given string `text` and return the parse tree. Raises
+        :class:`~textparser.ParseError` on failure.
 
         Returns a parse tree of tokens if `token_tree` is ``True``.
 
