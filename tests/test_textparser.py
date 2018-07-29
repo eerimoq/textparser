@@ -21,6 +21,7 @@ from textparser import Tag
 from textparser import Forward
 from textparser import NoMatch
 from textparser import Not
+from textparser import markup_line
 
 
 def tokenize(items, add_eof_token=True):
@@ -981,6 +982,29 @@ class TextParserTest(unittest.TestCase):
         self.assertEqual(cm.exception.column, 3)
         self.assertEqual(str(cm.exception),
                          'Invalid syntax at line 2, column 3: "34>>!<<56"')
+
+    def test_markup_line(self):
+        datas = [
+            (0, '>>!<<0', None),
+            (1, '0>>!<<', None),
+            (2, '>>!<<1234', None),
+            (4, '12>>!<<34', None),
+            (6, '1234>>!<<', None),
+            (7, '>>!<<56', None),
+            (8, '5>>!<<6', None),
+            (9, '56>>!<<', None),
+            (3, '1x234', 'x')
+        ]
+
+        for offset, line, marker in datas:
+            if marker is None:
+                text = markup_line('0\n1234\n56', offset)
+            else:
+                text = markup_line('0\n1234\n56',
+                                   offset,
+                                   marker=marker)
+
+            self.assertEqual(text, line)
 
 
 if __name__ == '__main__':

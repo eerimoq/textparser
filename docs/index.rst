@@ -73,4 +73,6 @@ Functions and classes
 .. autoclass:: textparser.GrammarError
     :members:
 
+.. autofunction:: textparser.markup_line
+
 .. autofunction:: textparser.tokenize_init

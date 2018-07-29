@@ -629,7 +629,17 @@ def choice(*patterns):
         return Choice(*patterns)
 
 
-def markup_line(text, offset):
+def markup_line(text, offset, marker='>>!<<'):
+    """Insert given marker `marker` at given offset `offset` into given
+    string `text`, and return the marked line.
+
+    .. code-block:: python
+
+       >>> markup_line('0\\n1234\\n56', 3)
+       1>>!<<234
+
+    """
+
     begin = text.rfind('\n', 0, offset)
     begin += 1
 
@@ -638,7 +648,7 @@ def markup_line(text, offset):
     if end == -1:
         end = len(text)
 
-    return text[begin:offset] + '>>!<<' + text[offset:end]
+    return text[begin:offset] + marker + text[offset:end]
 
 
 def line(text, offset):
