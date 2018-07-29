@@ -105,5 +105,10 @@ print()
 print('PACKAGE         SECONDS   RATIO')
 
 for package, seconds in measurements:
-    ratio = int(round(100 * (seconds / textparser_time), 0))
-    print('{:14s}  {:7.02f}  {:5}%'.format(package, seconds, ratio))
+    try:
+        ratio = int(round(100 * (seconds / textparser_time), 0))
+        ratio = '{:5}'.format(ratio)
+    except OverflowError:
+        ratio = '  inf'
+
+    print('{:14s}  {:7.02f}  {}%'.format(package, seconds, ratio))
