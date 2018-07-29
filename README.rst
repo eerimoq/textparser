@@ -6,8 +6,8 @@ About
 
 A text parser written in the Python language.
 
-The parser is :ref:`pretty fast<benchmark-heading>`, but not as user
-friendly as `PyParsing`_ and `Lark`_.
+The parser is `pretty fast`_, but not as user friendly as `PyParsing`_
+and `Lark`_.
 
 Project homepage: https://github.com/eerimoq/textparser
 
@@ -78,7 +78,7 @@ Script execution:
     Token(kind='WORD', value='World', offset=7),
     Token(kind='!', value='!', offset=12)]
 
-.. _benchmark-heading:
+.. _pretty fast:
 
 Benchmark
 =========
