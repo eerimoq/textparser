@@ -17,6 +17,9 @@ Functions and classes
 .. autoclass:: textparser.Parser
     :members:
 
+.. autoclass:: textparser.Sequence
+    :members:
+
 .. autoclass:: textparser.Choice
     :members:
 
@@ -40,10 +43,16 @@ Functions and classes
 .. autoclass:: textparser.DelimitedList
     :members:
 
+.. autoclass:: textparser.Optional
+    :members:
+
 .. autoclass:: textparser.Any
     :members:
 
-.. autoclass:: textparser.Optional
+.. autoclass:: textparser.Not
+    :members:
+
+.. autoclass:: textparser.NoMatch
     :members:
 
 .. autoclass:: textparser.Tag

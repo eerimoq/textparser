@@ -19,6 +19,8 @@ from textparser import Any
 from textparser import Optional
 from textparser import Tag
 from textparser import Forward
+from textparser import NoMatch
+from textparser import Not
 
 
 def tokenize(items, add_eof_token=True):
@@ -157,16 +159,20 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(str(cm.exception), message)
 
     def test_grammar_delimited_list(self):
-        grammar = Grammar(DelimitedList('WORD'))
+        grammar = Grammar(Sequence(DelimitedList('WORD'), Optional('.')))
 
         datas = [
             (
                 [('WORD', 'foo')],
-                ['foo']
+                [['foo'], []]
             ),
             (
                 [('WORD', 'foo'), (',', ','), ('WORD', 'bar')],
-                ['foo', 'bar']
+                [['foo', 'bar'], []]
+            ),
+            (
+                [('WORD', 'foo'), (',', ','), ('WORD', 'bar'), ('.', '.')],
+                [['foo', 'bar'], ['.']]
             )
         ]
 
@@ -176,19 +182,35 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(tree, expected_tree)
 
     def test_grammar_delimited_list_mismatch(self):
-        grammar = Grammar(DelimitedList('WORD'))
+        grammar = Grammar(Sequence(DelimitedList('WORD'), Optional('.')))
 
         datas = [
-            [('WORD', 'foo'), (',', ',')]
+            (
+                [
+                    ('WORD', 'foo', 1),
+                    (',', ',', 2)
+                ],
+                2
+            ),
+            (
+                [
+                    ('WORD', 'foo', 1),
+                    (',', ',', 2),
+                    ('WORD', 'foo', 3),
+                    (',', ',', 4),
+                    ('.', '.', 5)
+                ],
+                4
+            )
         ]
 
-        for tokens in datas:
+        for tokens, offset in datas:
             tokens = tokenize(tokens)
 
             with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(cm.exception.offset, -1)
+            self.assertEqual(cm.exception.offset, offset)
 
     def test_grammar_zero_or_more(self):
         grammar = Grammar(ZeroOrMore('WORD'))
@@ -205,6 +227,27 @@ class TextParserTest(unittest.TestCase):
             (
                 [('WORD', 'foo'), ('WORD', 'bar')],
                 ['foo', 'bar']
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tokens = tokenize(tokens)
+            tree = grammar.parse(tokens)
+            self.assertEqual(tree, expected_tree)
+
+    def test_grammar_zero_or_more_partial_element_match(self):
+        grammar = Grammar(Sequence(
+            ZeroOrMore(Sequence('WORD', 'NUMBER')), 'WORD'))
+
+        datas = [
+            (
+                [
+                    ('WORD', 'foo'),
+                    ('NUMBER', '1'),
+                    ('WORD', 'bar'),
+                    ('NUMBER', '2'),
+                    ('WORD', 'fie')],
+                [[['foo', '1'], ['bar', '2']], 'fie']
             )
         ]
 
@@ -254,7 +297,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -353,7 +396,7 @@ class TextParserTest(unittest.TestCase):
         ]
 
         for tokens, expected_tree in datas:
-            tokens = tokenize(tokens + [('__EOF__', '')])
+            tokens = tokenize(tokens)
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
@@ -361,16 +404,35 @@ class TextParserTest(unittest.TestCase):
         grammar = Grammar(OneOrMoreDict(Sequence('WORD', 'NUMBER')))
 
         datas = [
-            [('WORD', 'foo')]
+            (
+                [('WORD', 'foo', 5)],
+                -1
+            ),
+            (
+                [
+                    ('WORD', 'foo', 5),
+                    ('WORD', 'bar', 6)
+                ],
+                6
+            ),
+            (
+                [
+                    ('WORD', 'foo', 5),
+                    ('NUMBER', '4', 6),
+                    ('WORD', 'bar', 7),
+                    ('WORD', 'fie', 8)
+                ],
+                8
+            )
         ]
 
-        for tokens in datas:
+        for tokens, line in datas:
             tokens = tokenize(tokens)
 
             with self.assertRaises(textparser.GrammarError) as cm:
                 grammar.parse(tokens)
 
-            self.assertEqual(cm.exception.offset, -1)
+            self.assertEqual(cm.exception.offset, line)
 
     def test_grammar_any(self):
         grammar = Grammar(Any())
@@ -501,6 +563,22 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokenize(tokens))
             self.assertEqual(tree, expected_tree)
 
+    def test_grammar_forward_text(self):
+        foo = Forward()
+        foo <<= 'FOO'
+        grammar = Grammar(foo)
+
+        datas = [
+            (
+                [('FOO', 'foo')],
+                'foo'
+            )
+        ]
+
+        for tokens, expected_tree in datas:
+            tree = grammar.parse(tokenize(tokens))
+            self.assertEqual(tree, expected_tree)
+
     def test_grammar_optional(self):
         grammar = Grammar(Sequence(Optional('WORD'),
                                    Optional('WORD'),
@@ -572,6 +650,48 @@ class TextParserTest(unittest.TestCase):
                 grammar.parse(tokens)
 
             self.assertEqual(cm.exception.offset, 1)
+
+    def test_grammar_not(self):
+        grammar = Grammar(Sequence(Not('WORD'), 'NUMBER'))
+
+        datas = [
+            [('NUMBER', '1')]
+        ]
+
+        for tokens in datas:
+            tree = grammar.parse(tokenize(tokens))
+            self.assertEqual(tree, [[], '1'])
+
+    def test_grammar_not_mismatch(self):
+        grammar = Grammar(Sequence(Not('WORD'), 'NUMBER'))
+
+        datas = [
+            [('WORD', 'foo', 3), ('NUMBER', '1', 4)]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(cm.exception.offset, 3)
+
+    def test_grammar_no_match(self):
+        grammar = Grammar(NoMatch())
+
+        datas = [
+            [('NUMBER', '1', 3)],
+            [('WORD', 'foo', 3)]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(cm.exception.offset, 3)
 
     def test_tokenizer_error(self):
         datas = [

@@ -108,9 +108,27 @@ class Tokens(object):
     def restore(self):
         self._pos = self._stack.pop()
 
+    def update(self):
+        self._stack[-1] = self._pos
+
+    def load(self):
+        self._pos = self._stack[-1]
+
     def mark_max(self):
         if self._pos > self._max_pos:
             self._max_pos = self._pos
+
+    def mark_max_restore(self):
+        if self._pos > self._max_pos:
+            self._max_pos = self._pos
+
+        self._pos = self._stack.pop()
+
+    def mark_max_load(self):
+        if self._pos > self._max_pos:
+            self._max_pos = self._pos
+
+        self._pos = self._stack[-1]
 
     def drop(self):
         self._stack.pop()
@@ -165,8 +183,10 @@ class Choice(Pattern):
         self._patterns = _wrap_strings(patterns)
 
     def match(self, tokens):
+        tokens.save()
+
         for pattern in self._patterns:
-            tokens.save()
+            tokens.mark_max_load()
             mo = pattern.match(tokens)
 
             if mo is not None:
@@ -174,8 +194,7 @@ class Choice(Pattern):
 
                 return mo
 
-            tokens.mark_max()
-            tokens.restore()
+        tokens.restore()
 
         return None
 
@@ -231,22 +250,23 @@ class ChoiceDict(Pattern):
 
 
 class Repeated(Pattern):
-    """Matches given pattern `pattern` at least `minimum_length` times and
+    """Matches given pattern `pattern` at least `minimum` times and
     returns the matches as a list.
 
     """
 
-    def __init__(self, pattern, end=None, minimum_length=0):
+    def __init__(self, pattern, end=None, minimum=0):
         self._pattern = _wrap_string(pattern)
 
         if end is not None:
             end = _wrap_string(end)
 
         self._end = end
-        self._minimum_length = minimum_length
+        self._minimum = minimum
 
     def match(self, tokens):
         matched = []
+        tokens.save()
 
         while True:
             if self._end is not None:
@@ -255,29 +275,32 @@ class Repeated(Pattern):
                 tokens.restore()
 
                 if mo is not None:
+                    tokens.drop()
                     break
 
             mo = self._pattern.match(tokens)
 
             if mo is None:
+                tokens.mark_max_restore()
                 break
 
             matched.append(mo)
+            tokens.update()
 
-        if len(matched) >= self._minimum_length:
+        if len(matched) >= self._minimum:
             return matched
         else:
             return None
 
 
 class RepeatedDict(Repeated):
-    """Matches given pattern `pattern` at lead `minimum_length` times and
-    returns the matches as a dictionary.
+    """Matches given pattern `pattern` at lead `minimum` times and returns
+    the matches as a dictionary.
 
     """
 
-    def __init__(self, pattern, end=None, minimum_length=0, key=None):
-        super(RepeatedDict, self).__init__(pattern, end, minimum_length)
+    def __init__(self, pattern, end=None, minimum=0, key=None):
+        super(RepeatedDict, self).__init__(pattern, end, minimum)
 
         if key is None:
             key = itemgetter(0)
@@ -286,6 +309,7 @@ class RepeatedDict(Repeated):
 
     def match(self, tokens):
         matched = {}
+        tokens.save()
 
         while True:
             if self._end is not None:
@@ -294,11 +318,13 @@ class RepeatedDict(Repeated):
                 tokens.restore()
 
                 if mo is not None:
+                    tokens.drop()
                     break
 
             mo = self._pattern.match(tokens)
 
             if mo is None:
+                tokens.mark_max_restore()
                 break
 
             key = self._key(mo)
@@ -308,7 +334,9 @@ class RepeatedDict(Repeated):
             except KeyError:
                 matched[key] = [mo]
 
-        if len(matched) >= self._minimum_length:
+            tokens.update()
+
+        if len(matched) >= self._minimum:
             return matched
         else:
             return None
@@ -354,15 +382,6 @@ class OneOrMoreDict(RepeatedDict):
         super(OneOrMoreDict, self).__init__(pattern, end, 1, key)
 
 
-class Any(Pattern):
-    """Matches any token.
-
-    """
-
-    def match(self, tokens):
-        return tokens.get_value()
-
-
 class DelimitedList(Pattern):
     """Matches a delimented list of `pattern` separated by `delim`.
 
@@ -373,22 +392,34 @@ class DelimitedList(Pattern):
         self._delim = _wrap_string(delim)
 
     def match(self, tokens):
-        matched = []
+        # First pattern.
+        mo = self._pattern.match(tokens)
+
+        if mo is None:
+            return None
+
+        matched = [mo]
+        tokens.save()
 
         while True:
+            # Discard the delimiter.
+            mo = self._delim.match(tokens)
+
+            if mo is None:
+                break
+
             # Pattern.
             mo = self._pattern.match(tokens)
 
             if mo is None:
-                return None
+                break
 
             matched.append(mo)
+            tokens.update()
 
-            # Delimiter.
-            mo = self._delim.match(tokens)
+        tokens.restore()
 
-            if mo is None:
-                return matched
+        return matched
 
 
 class Optional(Pattern):
@@ -404,15 +435,60 @@ class Optional(Pattern):
         return self._pattern
 
     def match(self, tokens):
+        tokens.save()
         mo = self._pattern.match(tokens)
+
+        if mo is None:
+            tokens.mark_max_restore()
+
+            return []
+        else:
+            tokens.drop()
+
+            return [mo]
+
+
+class Any(Pattern):
+    """Matches any token.
+
+    """
+
+    def match(self, tokens):
+        return tokens.get_value()
+
+
+class Not(Pattern):
+    """Does not match given pattern.
+
+    """
+
+    def __init__(self, pattern):
+        self._pattern = _wrap_string(pattern)
+
+    def match(self, tokens):
+        tokens.save()
+        mo = self._pattern.match(tokens)
+        tokens.restore()
 
         if mo is None:
             return []
         else:
-            return [mo]
+            return None
+
+
+class NoMatch(Pattern):
+    """Never matches anything.
+
+    """
+
+    def match(self, tokens):
+        return None
 
 
 class Tag(Pattern):
+    """Tags any matched `pattern` with `name`.
+
+    """
 
     def __init__(self, name, pattern):
         self._name = name
@@ -432,6 +508,14 @@ class Tag(Pattern):
 
 
 class Forward(Pattern):
+    """Forward declaration of a pattern.
+
+    .. code-block:: python
+
+       >>> foo = Forward()
+       >>> foo <<= Sequence('NUMBER')
+
+    """
 
     def __init__(self):
         self._pattern = None
@@ -441,7 +525,7 @@ class Forward(Pattern):
         return self._pattern
 
     def __ilshift__(self, other):
-        self._pattern = other
+        self._pattern = _wrap_string(other)
 
         return self
 
