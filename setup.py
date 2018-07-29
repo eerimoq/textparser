@@ -23,7 +23,7 @@ setup(name='textparser',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
       ],
-      keywords=['parser'],
+      keywords=['parser', 'parsing'],
       url='https://github.com/eerimoq/textparser',
       py_modules=['textparser'],
       test_suite="tests")
