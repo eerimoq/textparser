@@ -79,7 +79,7 @@ Script execution:
     Token(kind='!', value='!', offset=12)]
 
 .. _benchmark-heading:
-    
+
 Benchmark
 =========
 
