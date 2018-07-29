@@ -108,7 +108,7 @@ Contributing
 .. |coverage| image:: https://coveralls.io/repos/github/eerimoq/textparser/badge.svg?branch=master
 .. _coverage: https://coveralls.io/github/eerimoq/textparser
 
-.. _pretty fast: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/main.py#L12-L23
+.. _pretty fast: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py#L12-L23
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Lark: https://github.com/lark-parser/lark
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py

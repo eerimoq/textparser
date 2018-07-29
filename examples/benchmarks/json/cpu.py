@@ -6,7 +6,7 @@ Test data generated with https://www.json-generator.com.
 
 Example execution:
 
-$ env PYTHONPATH=. python3 examples/benchmarks/json/main.py
+$ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
 Parsing 'examples/benchmarks/json/data.json' 1 time(s) per parser. This may take a few seconds.
 
 Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
