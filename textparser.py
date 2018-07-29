@@ -423,10 +423,6 @@ class Optional(Pattern):
     def __init__(self, pattern):
         self._pattern = _wrap_string(pattern)
 
-    @property
-    def pattern(self):
-        return self._pattern
-
     def match(self, tokens):
         tokens.save()
         mo = self._pattern.match(tokens)
