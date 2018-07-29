@@ -140,7 +140,10 @@ class StringTokens(Tokens):
 
 
 class Pattern(object):
+    """Base class of all patterns.
 
+    """
+    
     def match(self, tokens):
         raise NotImplementedError('To be implemented by subclasses.')
 

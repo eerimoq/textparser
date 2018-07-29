@@ -64,7 +64,4 @@ Functions and classes
 .. autoclass:: textparser.Pattern
     :members:
 
-.. autoclass:: textparser.Tokens
-    :members:
-
 .. autofunction:: textparser.tokenize_init
