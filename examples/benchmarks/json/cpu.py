@@ -1,27 +1,25 @@
 #!/usr/bin/env python
 
-"""A performance example comparing the performance of four parsers.
+"""A benchmark comparing the CPU time of 10 parsers.
 
 Test data generated with https://www.json-generator.com.
 
 Example execution:
 
 $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
-Parsing 'examples/benchmarks/json/data.json' 1 time(s) per parser. This may take a few seconds.
-
 Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
 
-PACKAGE        SECONDS
-textparser     0.103197
-lark (LALR)    0.265257
-funcparserlib  0.354334
-parsimonious   0.396413
-textx          0.522437
-pyparsing      0.663877
-pyleri         0.809443
-parsy          0.948944
-lark (Earley)  1.855001
-parsita        2.327958
+PACKAGE         SECONDS   RATIO
+textparser         0.10    100%
+lark (LALR)        0.26    265%
+funcparserlib      0.34    358%
+parsimonious       0.41    423%
+textx              0.53    548%
+pyparsing          0.69    715%
+pyleri             0.81    836%
+parsy              0.94    976%
+lark (Earley)      1.88   1949%
+parsita            2.31   2401%
 $
 
 """
@@ -74,11 +72,6 @@ ITERATIONS = 1
 with open(DATA_JSON, 'r') as fin:
     JSON_STRING = fin.read()
 
-
-print("Parsing '{}' {} time(s) per parser. This may take a few seconds.".format(
-    DATA_JSON,
-    ITERATIONS))
-
 textparser_time = textparser_json.parse_time(JSON_STRING, ITERATIONS)
 lark_lalr_time = lark_json.parse_time_lalr(JSON_STRING, ITERATIONS)
 lark_earley_time = lark_json.parse_time_earley(JSON_STRING, ITERATIONS)
@@ -109,7 +102,8 @@ measurements = sorted(measurements, key=lambda m: m[1])
 print()
 print("Parsing '{}' {} time(s) took:".format(DATA_JSON, ITERATIONS))
 print()
-print('PACKAGE        SECONDS')
+print('PACKAGE         SECONDS   RATIO')
 
 for package, seconds in measurements:
-    print('{:14s} {:f}'.format(package, seconds))
+    ratio = int(round(100 * (seconds / textparser_time), 0))
+    print('{:14s}  {:7.02f}  {:5}%'.format(package, seconds, ratio))

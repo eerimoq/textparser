@@ -78,6 +78,33 @@ Script execution:
     Token(kind='WORD', value='World', offset=7),
     Token(kind='!', value='!', offset=12)]
 
+Benchmark
+=========
+
+A `benchmark`_ comparing the CPU time of 10 parsers, parsing a 276k bytes
+`JSON file`_.
+
+NOTE: The parsers are not necessarily optimized for speed. Optimizing
+them will likely affect the measurements.
+
+.. code-block:: text
+
+   $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
+   Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
+
+   PACKAGE         SECONDS   RATIO
+   textparser         0.10    100%
+   lark (LALR)        0.26    265%
+   funcparserlib      0.34    358%
+   parsimonious       0.41    423%
+   textx              0.53    548%
+   pyparsing          0.69    715%
+   pyleri             0.81    836%
+   parsy              0.94    976%
+   lark (Earley)      1.88   1949%
+   parsita            2.31   2401%
+   $
+
 Contributing
 ============
 
@@ -112,3 +139,5 @@ Contributing
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Lark: https://github.com/lark-parser/lark
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
+.. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py
+.. _JSON file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json
