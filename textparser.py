@@ -446,7 +446,9 @@ class OneOrMoreDict(RepeatedDict):
 
 
 class DelimitedList(Pattern):
-    """Matches a delimented list of `pattern` separated by `delim`.
+    """Matches a delimented list of `pattern` separated by
+    `delim`. Returns a list of matches if `pattern` matched at least
+    once. The delimitors are not part of the result.
 
     """
 
@@ -517,7 +519,7 @@ class Any(Pattern):
 
 
 class Not(Pattern):
-    """Does not match given pattern.
+    """Does not match given pattern. Returns an empty list on match.
 
     """
 
@@ -545,7 +547,8 @@ class NoMatch(Pattern):
 
 
 class Tag(Pattern):
-    """Tags any matched `pattern` with `name`.
+    """Tags any matched `pattern` with `name`, and retuns it as a
+    two-tuple of `name` and match.
 
     """
 
@@ -615,6 +618,11 @@ class Grammar(object):
 
 
 def choice(*patterns):
+    """Returns an instance of the fastest choice pattern class for given
+    `patterns`.
+
+    """
+
     try:
         return ChoiceDict(*patterns)
     except Error:
@@ -705,12 +713,15 @@ class Parser(object):
         ``(kind, name, re)``. If the second form is used, the grammar
         should use `name` instead of `kind`.
 
+        See :class:`~textparser.Parser` for an example usage.
+
         """
 
         return []
 
     def tokenize(self, text):
-        """Tokenize given string `text`, and return a list of tokens.
+        """Tokenize given string `text`, and return a list of tokens. Raises
+        :class:`~textparser.TokenizeError` on failure.
 
         This method should only be called by
         :func:`~textparser.Parser.parse()`, but may very well be
@@ -747,6 +758,7 @@ class Parser(object):
         """The text grammar is used to create a parse tree out of a list of
         tokens.
 
+        See :class:`~textparser.Parser` for an example usage.
 
         """
 
