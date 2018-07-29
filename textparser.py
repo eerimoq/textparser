@@ -547,7 +547,7 @@ class NoMatch(Pattern):
 
 
 class Tag(Pattern):
-    """Tags any matched `pattern` with `name`, and retuns it as a
+    """Tags any matched `pattern` with `name`, and returns it as a
     two-tuple of `name` and match.
 
     """
