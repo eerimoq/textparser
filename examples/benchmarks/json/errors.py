@@ -145,7 +145,7 @@ except:
     class parsita_json(object):
 
         @staticmethod
-        def parse(_json_string, _iterations):
+        def parse(_json_string):
             raise Exception('Import failed!')
 
 try:
@@ -154,14 +154,14 @@ except:
     class parsy_json(object):
 
         @staticmethod
-        def parse(_json_string, _iterations):
+        def parse(_json_string):
             raise Exception('Import failed!')
 
 
 def parse(string):
     def _parse(function):
         try:
-            function(string, 1)
+            function(string)
         except Exception as e:
             return str(e)
 

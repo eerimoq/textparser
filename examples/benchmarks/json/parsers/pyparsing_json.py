@@ -15,7 +15,7 @@ from pyparsing import pyparsing_common
 from pyparsing import Dict
 
 
-def parse(json_string, iterations):
+def create_grammar():
     TRUE  = Keyword('true')
     FALSE = Keyword('false')
     NULL  = Keyword('null')
@@ -40,7 +40,19 @@ def parse(json_string, iterations):
     members = delimitedList(member)
     object_ <<= Dict(LBRACE + Optional(members) + RBRACE)
 
+    return value
+
+
+def parse_time(json_string, iterations=1):
+    grammar = create_grammar()
+
     def _parse():
-        value.parseString(json_string)
+        grammar.parseString(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    grammar = create_grammar()
+    
+    return grammar.parseString(json_string).asList()

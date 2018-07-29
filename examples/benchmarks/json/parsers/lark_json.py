@@ -31,7 +31,7 @@ LARK_JSON_GRAMMAR = r"""
     """
 
 
-def parse_lalr(json_string, iterations):
+def parse_time_lalr(json_string, iterations):
     parser = Lark(LARK_JSON_GRAMMAR,
                   start='value',
                   lexer='standard',
@@ -43,7 +43,7 @@ def parse_lalr(json_string, iterations):
     return timeit.timeit(_parse, number=iterations)
 
 
-def parse_earley(json_string, iterations):
+def parse_time_earley(json_string, iterations):
     parser = Lark(LARK_JSON_GRAMMAR,
                   start='value',
                   lexer='standard',
@@ -53,3 +53,21 @@ def parse_earley(json_string, iterations):
         parser.parse(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse_lalr(json_string):
+    parser = Lark(LARK_JSON_GRAMMAR,
+                  start='value',
+                  lexer='standard',
+                  parser='lalr')
+
+    return parser.parse(json_string)
+
+
+def parse_earley(json_string):
+    parser = Lark(LARK_JSON_GRAMMAR,
+                  start='value',
+                  lexer='standard',
+                  parser='earley')
+
+    return parser.parse(json_string)

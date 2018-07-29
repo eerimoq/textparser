@@ -5,6 +5,7 @@ test:
 	env PYTHONPATH=. python3 examples/hello_world.py
 	env PYTHONPATH=. python3 examples/proto3.py
 	env PYTHONPATH=. python3 examples/benchmarks/json/errors.py
+	env PYTHONPATH=. python3 examples/benchmarks/json/parse_tree.py
 	env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
 	codespell -d $$(git ls-files | grep -v \.json)
 

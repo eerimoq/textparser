@@ -18,7 +18,7 @@ false  = lexeme(string('false'))
 null   = lexeme(string('null'))
 number = lexeme(
     regex(r'-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?')
-).map(float)
+)
 string_part = regex(r'[^"\\]+')
 string_esc = string('\\') >> (
     string('\\')
@@ -59,8 +59,12 @@ value = quoted | number | json_object | array | true | false | null
 json = whitespace >> value
 
 
-def parse(json_string, iterations):
+def parse_time(json_string, iterations):
     def _parse():
         json.parse(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    return json.parse(json_string)

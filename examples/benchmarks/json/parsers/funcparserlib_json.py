@@ -30,11 +30,7 @@ REGEXPS = {
 }
 
 
-def tokenize(string):
-    """str -> Sequence(Token)
-
-    """
-
+def create_tokenizer():
     specs = [
         ('Space', (r'[ \t\r\n]+',)),
         ('String', (r'"(%(unescaped)s | %(escaped)s)*"' % REGEXPS, re.VERBOSE)),
@@ -48,18 +44,16 @@ def tokenize(string):
         ('Name', (r'[A-Za-z_][A-Za-z_0-9]*',)),
     ]
 
+    return make_tokenizer(specs)
+
+
+def tokenize(tokenizer, string):
     useless = ['Space']
-
-    t = make_tokenizer(specs)
-
-    return [x for x in t(string) if x.type not in useless]
+    
+    return [x for x in tokenizer(string) if x.type not in useless]
 
 
-def parse_json(seq):
-    """Sequence(Token) -> object
-
-    """
-
+def create_grammar():
     tokval = lambda x: x.value
     toktype = lambda t: some(lambda x: x.type == t) >> tokval
     op = lambda s: a(Token('Op', s)) >> tokval
@@ -89,11 +83,21 @@ def parse_json(seq):
     json_text = object_ | array
     json_file = json_text + skip(finished)
 
-    return json_file.parse(seq)
+    return json_file
 
 
-def parse(json_string, iterations):
+def parse_time(json_string, iterations):
+    grammar = create_grammar()
+    tokenizer = create_tokenizer()
+    
     def _parse():
-        parse_json(tokenize(json_string))
+        grammar.parse(tokenize(tokenizer, json_string))
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    grammar = create_grammar()
+    tokenizer = create_tokenizer()
+    
+    return grammar.parse(tokenize(tokenizer, json_string))

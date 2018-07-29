@@ -12,14 +12,14 @@ Parsing 'examples/benchmarks/json/data.json' 1 time(s) per parser. This may take
 Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
 
 PACKAGE        SECONDS
-textparser     0.099870
-lark (LALR)    0.252110
-funcparserlib  0.349336
-parsimonious   0.386092
-pyparsing      0.720664
-parsy          0.940929
-lark (Earley)  1.823468
-parsita        2.435160
+textparser     0.100049
+lark (LALR)    0.251040
+funcparserlib  0.339087
+parsimonious   0.380170
+pyparsing      0.677518
+parsy          0.938273
+lark (Earley)  1.877682
+parsita        2.326168
 $
 
 """
@@ -40,7 +40,7 @@ except:
     class parsita_json(object):
 
         @staticmethod
-        def parse(_json_string, _iterations):
+        def parse_time(_json_string, _iterations):
             return float('inf')
 
 try:
@@ -49,7 +49,7 @@ except:
     class parsy_json(object):
 
         @staticmethod
-        def parse(_json_string, _iterations):
+        def parse_time(_json_string, _iterations):
             return float('inf')
 
 
@@ -67,14 +67,14 @@ print("Parsing '{}' {} time(s) per parser. This may take a few seconds.".format(
     DATA_JSON,
     ITERATIONS))
 
-textparser_time = textparser_json.parse(JSON_STRING, ITERATIONS)
-lark_lalr_time = lark_json.parse_lalr(JSON_STRING, ITERATIONS)
-lark_earley_time = lark_json.parse_earley(JSON_STRING, ITERATIONS)
-pyparsing_time = pyparsing_json.parse(JSON_STRING, ITERATIONS)
-parsita_time = parsita_json.parse(JSON_STRING, ITERATIONS)
-funcparserlib_time = funcparserlib_json.parse(JSON_STRING, ITERATIONS)
-parsy_time = parsy_json.parse(JSON_STRING, ITERATIONS)
-parsimonious_time = parsimonious_json.parse(JSON_STRING, ITERATIONS)
+textparser_time = textparser_json.parse_time(JSON_STRING, ITERATIONS)
+lark_lalr_time = lark_json.parse_time_lalr(JSON_STRING, ITERATIONS)
+lark_earley_time = lark_json.parse_time_earley(JSON_STRING, ITERATIONS)
+pyparsing_time = pyparsing_json.parse_time(JSON_STRING, ITERATIONS)
+parsita_time = parsita_json.parse_time(JSON_STRING, ITERATIONS)
+funcparserlib_time = funcparserlib_json.parse_time(JSON_STRING, ITERATIONS)
+parsy_time = parsy_json.parse_time(JSON_STRING, ITERATIONS)
+parsimonious_time = parsimonious_json.parse_time(JSON_STRING, ITERATIONS)
 
 # Parse comparison output.
 measurements = [

@@ -45,10 +45,14 @@ class Parser(textparser.Parser):
         return value
 
 
-def parse(json_string, iterations):
+def parse_time(json_string, iterations):
     parser = Parser()
 
     def _parse():
         parser.parse(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    return Parser().parse(json_string)

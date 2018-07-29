@@ -53,8 +53,12 @@ class JsonParsers(TextParsers, whitespace=r'[ \t\n\r]*'):
              | obj)
 
 
-def parse(json_string, iterations):
+def parse_time(json_string, iterations):
     def _parse():
         JsonParsers.value.parse(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    return JsonParsers.value.parse(json_string)

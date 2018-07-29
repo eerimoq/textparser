@@ -12,6 +12,7 @@ script:
   - make test-sdist
   - env PYTHONPATH=. python examples/hello_world.py
   - env PYTHONPATH=. python examples/benchmarks/json/errors.py
+  - env PYTHONPATH=. python examples/benchmarks/json/parse_tree.py
   - env PYTHONPATH=. python examples/benchmarks/json/cpu.py
 after_success:
   coveralls

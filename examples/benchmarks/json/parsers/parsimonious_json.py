@@ -33,8 +33,12 @@ grammar = Grammar(
     """)
 
 
-def parse(json_string, iterations):
+def parse_time(json_string, iterations):
     def _parse():
         grammar.parse(json_string)
 
     return timeit.timeit(_parse, number=iterations)
+
+
+def parse(json_string):
+    return grammar.parse(json_string)
