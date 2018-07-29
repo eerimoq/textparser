@@ -6,7 +6,7 @@ About
 
 A text parser written in the Python language.
 
-The parser is `pretty fast`_, but not as user friendly as `PyParsing`_
+The parser is pretty fast, but not as user friendly as `PyParsing`_
 and `Lark`_.
 
 Project homepage: https://github.com/eerimoq/textparser
