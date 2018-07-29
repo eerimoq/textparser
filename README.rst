@@ -87,7 +87,9 @@ A `benchmark`_ comparing the CPU time of 10 parsers, parsing a 276k
 bytes `JSON file`_.
 
 NOTE: The parsers are not necessarily optimized for speed. Optimizing
-them will likely affect the measurements.
+them will likely affect the measurements. Also, the structure of the
+resulting parse trees varies and additional processing may be required
+to make them fit the user application.
 
 .. code-block:: text
 
