@@ -111,13 +111,6 @@ class Tokens(object):
     def update(self):
         self._stack[-1] = self._pos
 
-    def load(self):
-        self._pos = self._stack[-1]
-
-    def mark_max(self):
-        if self._pos > self._max_pos:
-            self._max_pos = self._pos
-
     def mark_max_restore(self):
         if self._pos > self._max_pos:
             self._max_pos = self._pos
