@@ -6,7 +6,7 @@ test:
 	env PYTHONPATH=. python3 examples/proto3.py
 	env PYTHONPATH=. python3 examples/benchmarks/json/errors.py
 	env PYTHONPATH=. python3 examples/benchmarks/json/parse_tree.py
-	env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
+	env PYTHONPATH=. python3 examples/benchmarks/json/speed.py
 	codespell -d $$(git ls-files | grep -v \.json)
 
 test-sdist:

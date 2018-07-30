@@ -68,12 +68,12 @@ Script execution:
 Benchmark
 =========
 
-A `benchmark`_ comparing the CPU time of 10 JSON parsers, parsing a
-`276 kb file`_.
+A `benchmark`_ comparing the speed of 10 JSON parsers, parsing a `276
+kb file`_.
 
 .. code-block:: text
 
-   $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
+   $ env PYTHONPATH=. python3 examples/benchmarks/json/speed.py
    Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
    PACKAGE         SECONDS   RATIO  VERSION
@@ -131,5 +131,5 @@ Contributing
 
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
-.. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py
+.. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/speed.py
 .. _276 kb file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-"""A benchmark comparing the CPU time of 10 parsers.
+"""A benchmark comparing the speed of 10 parsers.
 
 Test data generated with https://www.json-generator.com.
 
 Example execution:
 
-$ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
+$ env PYTHONPATH=. python3 examples/benchmarks/json/speed.py
 Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
 PACKAGE         SECONDS   RATIO  VERSION
