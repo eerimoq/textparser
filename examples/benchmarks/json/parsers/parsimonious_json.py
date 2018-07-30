@@ -42,3 +42,7 @@ def parse_time(json_string, iterations):
 
 def parse(json_string):
     return grammar.parse(json_string)
+
+
+def version():
+    return 'unknown'

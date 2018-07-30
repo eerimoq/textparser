@@ -5,6 +5,7 @@ https://github.com/transceptor-technology/pyleri/blob/master/examples/json_gramm
 
 import timeit
 
+import pyleri
 from pyleri import Ref
 from pyleri import Choice
 from pyleri import Grammar
@@ -57,3 +58,7 @@ def parse_time(json_string, iterations):
 
 def parse(json_string):
     return JsonGrammar().parse(json_string)
+
+
+def version():
+    return pyleri.__version__

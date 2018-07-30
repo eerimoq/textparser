@@ -1,5 +1,6 @@
 import timeit
 
+import parsy
 from parsy import generate
 from parsy import regex
 from parsy import string
@@ -68,3 +69,7 @@ def parse_time(json_string, iterations):
 
 def parse(json_string):
     return json.parse(json_string)
+
+
+def version():
+    return parsy.__version__

@@ -9,17 +9,17 @@ Example execution:
 $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
 Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
-PACKAGE         SECONDS   RATIO
-textparser         0.10    100%
-lark (LALR)        0.26    265%
-funcparserlib      0.34    358%
-parsimonious       0.41    423%
-textx              0.53    548%
-pyparsing          0.69    715%
-pyleri             0.81    836%
-parsy              0.94    976%
-lark (Earley)      1.88   1949%
-parsita            2.31   2401%
+PACKAGE         SECONDS   RATIO  VERSION
+textparser         0.10    100%  0.14.0
+lark (LALR)        0.26    265%  0.6.2
+funcparserlib      0.34    358%  unknown
+parsimonious       0.41    423%  unknown
+textx              0.53    548%  1.7.1
+pyparsing          0.69    715%  2.2.0
+pyleri             0.81    836%  1.2.2
+parsy              0.94    976%  1.2.0
+lark (Earley)      1.88   1949%  0.6.2
+parsita            2.31   2401%  unknown
 $
 
 """
@@ -85,16 +85,16 @@ textx_time = textx_json.parse_time(JSON_STRING, ITERATIONS)
 
 # Parse comparison output.
 measurements = [
-    ('textparser', textparser_time),
-    ('lark (LALR)', lark_lalr_time),
-    ('lark (Earley)', lark_earley_time),
-    ('pyparsing', pyparsing_time),
-    ('parsita', parsita_time),
-    ('funcparserlib', funcparserlib_time),
-    ('parsy', parsy_time),
-    ('parsimonious', parsimonious_time),
-    ('pyleri', pyleri_time),
-    ('textx', textx_time)
+    ('textparser', textparser_time, textparser_json.version()),
+    ('lark (LALR)', lark_lalr_time, lark_json.version()),
+    ('lark (Earley)', lark_earley_time, lark_json.version()),
+    ('pyparsing', pyparsing_time, pyparsing_json.version()),
+    ('parsita', parsita_time, parsita_json.version()),
+    ('funcparserlib', funcparserlib_time, funcparserlib_json.version()),
+    ('parsy', parsy_time, parsy_json.version()),
+    ('parsimonious', parsimonious_time, parsimonious_json.version()),
+    ('pyleri', pyleri_time, pyleri_json.version()),
+    ('textx', textx_time, textx_json.version())
 ]
 
 measurements = sorted(measurements, key=lambda m: m[1])
@@ -102,13 +102,16 @@ measurements = sorted(measurements, key=lambda m: m[1])
 print()
 print("Parsed '{}' {} time(s) in:".format(DATA_JSON, ITERATIONS))
 print()
-print('PACKAGE         SECONDS   RATIO')
+print('PACKAGE         SECONDS   RATIO  VERSION')
 
-for package, seconds in measurements:
+for package, seconds, version in measurements:
     try:
         ratio = int(round(100 * (seconds / textparser_time), 0))
         ratio = '{:5}'.format(ratio)
     except OverflowError:
         ratio = '  inf'
 
-    print('{:14s}  {:7.02f}  {}%'.format(package, seconds, ratio))
+    print('{:14s}  {:7.02f}  {}%  {}'.format(package,
+                                             seconds,
+                                             ratio,
+                                             version))

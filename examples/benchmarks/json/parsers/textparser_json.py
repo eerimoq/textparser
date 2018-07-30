@@ -56,3 +56,7 @@ def parse_time(json_string, iterations):
 
 def parse(json_string):
     return Parser().parse(json_string)
+
+
+def version():
+    return textparser.__version__

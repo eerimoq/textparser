@@ -4,6 +4,7 @@
 
 import timeit
 
+import pyparsing
 from pyparsing import Keyword
 from pyparsing import Suppress
 from pyparsing import dblQuotedString
@@ -56,3 +57,7 @@ def parse(json_string):
     grammar = create_grammar()
     
     return grammar.parseString(json_string).asList()
+
+
+def version():
+    return pyparsing.__version__

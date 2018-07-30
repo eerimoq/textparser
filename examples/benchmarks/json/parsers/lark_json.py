@@ -5,6 +5,7 @@ https://github.com/lark-parser/lark/blob/master/docs/json_tutorial.md.
 
 import timeit
 
+import lark
 from lark import Lark
 
 
@@ -71,3 +72,7 @@ def parse_earley(json_string):
                   parser='earley')
 
     return parser.parse(json_string)
+
+
+def version():
+    return lark.__version__

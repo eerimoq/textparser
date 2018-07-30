@@ -101,3 +101,7 @@ def parse(json_string):
     tokenizer = create_tokenizer()
     
     return grammar.parse(tokenize(tokenizer, json_string))
+
+
+def version():
+    return 'unknown'

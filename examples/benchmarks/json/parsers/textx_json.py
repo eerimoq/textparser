@@ -5,6 +5,7 @@ https://github.com/igordejanovic/textX/tree/master/examples/json.
 
 import timeit
 
+import textx
 from textx import metamodel_from_str
 
 
@@ -48,3 +49,7 @@ def parse(json_string):
     parser = metamodel_from_str(GRAMMAR)
 
     return parser.model_from_str(json_string)
+
+
+def version():
+    return textx.__version__
