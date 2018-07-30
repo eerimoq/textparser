@@ -103,15 +103,15 @@ A `benchmark`_ comparing the CPU time of 10 JSON parsers, parsing a
    parsita            2.31   2401%  unknown
    $
 
-*NOTE 1*: The parsers are not necessarily optimized for
-speed. Optimizing them will likely affect the measurements.
+*NOTE 1: The parsers are not necessarily optimized for
+speed. Optimizing them will likely affect the measurements.*
 
-*NOTE 2*: The structure of the resulting parse trees varies and
+*NOTE 2: The structure of the resulting parse trees varies and
 additional processing may be required to make them fit the user
-application.
+application.*
 
-*NOTE 3*: Only JSON parsers are compared. Parsing other languages may
-give vastly different results.
+*NOTE 3: Only JSON parsers are compared. Parsing other languages may
+give vastly different results.*
 
 Contributing
 ============
