@@ -6,8 +6,7 @@ About
 
 A text parser written in the Python language.
 
-The parser is pretty fast, but not as user friendly as `PyParsing`_
-and `Lark`_.
+The project has one goal, speed! See the benchmark below more details.
 
 Project homepage: https://github.com/eerimoq/textparser
 
@@ -140,7 +139,6 @@ Contributing
 .. _coverage: https://coveralls.io/github/eerimoq/textparser
 
 .. _PyParsing: https://github.com/pyparsing/pyparsing
-.. _Lark: https://github.com/lark-parser/lark
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
 .. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py
 .. _JSON file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json

@@ -22,6 +22,18 @@ Building the grammar
 
 The grammar built by combining the classes below and strings.
 
+Here is a fictitious example grammar:
+
+.. code-block:: python
+
+   grammar = Sequence(
+       'BEGIN',
+       Optional(choice('IF', Sequence(ZeroOrMore('NUMBER')))),
+       OneOrMore('WORD', end=Sequence('WORD', 'NUMBER')),
+       Any(),
+       DelimitedList('WORD', delim=':'),
+       'END')
+
 .. autoclass:: textparser.Sequence
     :members:
 
@@ -66,11 +78,20 @@ The grammar built by combining the classes below and strings.
 .. autoclass:: textparser.Forward
     :members:
 
+.. autoclass:: textparser.Repeated
+    :members:
+
+.. autoclass:: textparser.RepeatedDict
+    :members:
+
 .. autoclass:: textparser.Pattern
     :members:
 
 Exceptions
 ==========
+
+.. autoclass:: textparser.Error
+    :members:
 
 .. autoclass:: textparser.ParseError
     :members:

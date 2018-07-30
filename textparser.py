@@ -43,6 +43,10 @@ def _format_invalid_syntax(text, offset):
 
 
 class Error(Exception):
+    """General textparser exception.
+
+    """
+
     pass
 
 
@@ -144,7 +148,7 @@ class ParseError(Error):
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
 
 
-class Tokens(object):
+class _Tokens(object):
 
     def __init__(self, tokens):
         self._tokens = tokens
@@ -197,7 +201,7 @@ class Tokens(object):
         return str(self._tokens[self._pos:self._pos + 2])
 
 
-class StringTokens(Tokens):
+class _StringTokens(_Tokens):
 
     def get_value(self):
         pos = self._pos
@@ -238,7 +242,8 @@ class Sequence(Pattern):
 
 
 class Choice(Pattern):
-    """Matches any of given patterns.
+    """Matches any of given patterns `patterns`. The first pattern in the
+    list has highest priority, and the last lowest.
 
     """
 
@@ -266,7 +271,7 @@ class ChoiceDict(Pattern):
     """Matches any of given patterns.
 
     The first token kind of all patterns must be unique, otherwise and
-    Error exception is raised.
+    :class:`~textparser.Error` exception is raised.
 
     """
 
@@ -313,8 +318,10 @@ class ChoiceDict(Pattern):
 
 
 class Repeated(Pattern):
-    """Matches given pattern `pattern` at least `minimum` times and
-    returns the matches as a list.
+    """Matches `pattern` at least `minimum` times and returns the matches
+    as a list.
+
+    Stops if `end` is matched.
 
     """
 
@@ -357,8 +364,14 @@ class Repeated(Pattern):
 
 
 class RepeatedDict(Repeated):
-    """Matches given pattern `pattern` at lead `minimum` times and returns
-    the matches as a dictionary.
+    """Matches `pattern` at least `minimum` times and returns the matches
+    as a dictionary.
+
+    Stops if `end` is matched.
+
+    `key` is a function taking the match as input and returning the
+    dictionary key. By default the first element in the match is used
+    as key.
 
     """
 
@@ -409,6 +422,8 @@ class ZeroOrMore(Repeated):
     """Matches `pattern` zero or more times and returns the matches as a
     list.
 
+    See :class:`~textparser.Repeated` for more details.
+
     """
 
     def __init__(self, pattern, end=None):
@@ -418,6 +433,8 @@ class ZeroOrMore(Repeated):
 class ZeroOrMoreDict(RepeatedDict):
     """Matches `pattern` zero or more times and returns the matches as a
     dictionary.
+
+    See :class:`~textparser.RepeatedDict` for more details.
 
     """
 
@@ -429,6 +446,8 @@ class OneOrMore(Repeated):
     """Matches `pattern` one or more times and returns the matches as a
     list.
 
+    See :class:`~textparser.Repeated` for more details.
+
     """
 
     def __init__(self, pattern, end=None):
@@ -438,6 +457,8 @@ class OneOrMore(Repeated):
 class OneOrMoreDict(RepeatedDict):
     """Matches `pattern` one or more times and returns the matches as a
     dictionary.
+
+    See :class:`~textparser.RepeatedDict` for more details.
 
     """
 
@@ -519,7 +540,7 @@ class Any(Pattern):
 
 
 class Not(Pattern):
-    """Does not match given pattern. Returns an empty list on match.
+    """Does not match `pattern`. Returns an empty list on match.
 
     """
 
@@ -547,7 +568,7 @@ class NoMatch(Pattern):
 
 
 class Tag(Pattern):
-    """Tags any matched `pattern` with `name`, and returns it as a
+    """Tags any matched `pattern` with name `name`, and returns it as a
     two-tuple of `name` and match.
 
     """
@@ -596,7 +617,7 @@ class Forward(Pattern):
 
 
 class Grammar(object):
-    """Creates a tree of given tokens.
+    """Creates a tree of given tokens using the grammar `grammar`.
 
     """
 
@@ -608,9 +629,9 @@ class Grammar(object):
 
     def parse(self, tokens, token_tree=False):
         if token_tree:
-            tokens = Tokens(tokens)
+            tokens = _Tokens(tokens)
         else:
-            tokens = StringTokens(tokens)
+            tokens = _StringTokens(tokens)
 
         parsed = self._root.match(tokens)
 
@@ -621,7 +642,7 @@ class Grammar(object):
 
 
 def choice(*patterns):
-    """Returns an instance of the fastest choice pattern class for given
+    """Returns an instance of the fastest choice class for given patterns
     `patterns`.
 
     """
@@ -633,8 +654,8 @@ def choice(*patterns):
 
 
 def markup_line(text, offset, marker='>>!<<'):
-    """Insert given marker `marker` at given offset `offset` into given
-    string `text`, and return the marked line.
+    """Insert `marker` at `offset` into `text`, and return the marked
+    line.
 
     .. code-block:: python
 
@@ -665,6 +686,11 @@ def column(text, offset):
 
 
 def tokenize_init(spec):
+    """Initialize a tokenizer. Should only be called by the
+    :func:`~textparser.Parser.tokenize` method in the parser.
+
+    """
+
     tokens = []
     re_token = '|'.join([
         '(?P<{}>{})'.format(name, regex) for name, regex in spec
