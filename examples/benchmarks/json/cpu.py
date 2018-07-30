@@ -7,7 +7,7 @@ Test data generated with https://www.json-generator.com.
 Example execution:
 
 $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
-Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
+Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
 PACKAGE         SECONDS   RATIO
 textparser         0.10    100%
@@ -100,7 +100,7 @@ measurements = [
 measurements = sorted(measurements, key=lambda m: m[1])
 
 print()
-print("Parsing '{}' {} time(s) took:".format(DATA_JSON, ITERATIONS))
+print("Parsed '{}' {} time(s) in:".format(DATA_JSON, ITERATIONS))
 print()
 print('PACKAGE         SECONDS   RATIO')
 

@@ -94,7 +94,7 @@ to make them fit the user application.
 .. code-block:: text
 
    $ env PYTHONPATH=. python3 examples/benchmarks/json/cpu.py
-   Parsing 'examples/benchmarks/json/data.json' 1 time(s) took:
+   Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
    PACKAGE         SECONDS   RATIO
    textparser         0.10    100%
