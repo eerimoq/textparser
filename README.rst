@@ -82,13 +82,8 @@ Script execution:
 Benchmark
 =========
 
-A `benchmark`_ comparing the CPU time of 10 parsers, parsing a 276k
-bytes `JSON file`_.
-
-NOTE: The parsers are not necessarily optimized for speed. Optimizing
-them will likely affect the measurements. Also, the structure of the
-resulting parse trees varies and additional processing may be required
-to make them fit the user application.
+A `benchmark`_ comparing the CPU time of 10 JSON parsers, parsing a
+276k bytes `file`_.
 
 .. code-block:: text
 
@@ -107,6 +102,16 @@ to make them fit the user application.
    lark (Earley)      1.88   1949%  0.6.2
    parsita            2.31   2401%  unknown
    $
+
+*NOTE 1*: The parsers are not necessarily optimized for
+speed. Optimizing them will likely affect the measurements.
+
+*NOTE 2*: The structure of the resulting parse trees varies and
+additional processing may be required to make them fit the user
+application.
+
+*NOTE 3*: Only JSON parsers are compared. Parsing other languages may
+give vastly different results.
 
 Contributing
 ============
@@ -141,4 +146,4 @@ Contributing
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
 .. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py
-.. _JSON file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json
+.. _file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json
