@@ -601,6 +601,9 @@ class Grammar(object):
     """
 
     def __init__(self, grammar):
+        if isinstance(grammar, str):
+            grammar = _wrap_string(grammar)
+
         self._root = grammar
 
     def parse(self, tokens, token_tree=False):
@@ -727,7 +730,13 @@ class Parser(object):
 
         """
 
-        return []
+        return [
+            ('SKIP',                r'[ \r\n\t]+'),
+            ('NUMBER',              r'-?\d+(\.\d+)?([eE][+-]?\d+)?'),
+            ('WORD',                r'[A-Za-z0-9_]+'),
+            ('ESCAPED_STRING',      r'"(\\"|[^"])*?"'),
+            ('MISMATCH',            r'.')
+        ]
 
     def tokenize(self, text):
         """Tokenize given string `text`, and return a list of tokens. Raises
@@ -772,7 +781,7 @@ class Parser(object):
 
         """
 
-        raise NotImplementedError('To be implemented by subclasses.')
+        raise NotImplementedError('No grammar defined.')
 
     def parse(self, text, token_tree=False):
         """Parse given string `text` and return the parse tree. Raises

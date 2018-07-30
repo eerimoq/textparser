@@ -851,23 +851,109 @@ class TextParserTest(unittest.TestCase):
             tree = Parser().parse(text, token_tree=True)
             self.assertEqual(tree, expected_token_tree)
 
+    def test_parser_default_keywords(self):
+        class Parser(textparser.Parser):
+
+            def token_specs(self):
+                return [
+                    ('SKIP',                r'[ \r\n\t]+'),
+                    ('NUMBER',              r'-?\d+(\.\d+)?([eE][+-]?\d+)?'),
+                    ('DOT',            '.', r'\.'),
+                    ('WORD',                r'[A-Za-z0-9_]+'),
+                    ('ESCAPED_STRING',      r'"(\\"|[^"])*?"'),
+                    ('MISMATCH',            r'.')
+                ]
+
+            def grammar(self):
+                return Sequence(
+                    'WORD',
+                    Optional('WORD'),
+                    'ESCAPED_STRING',
+                    'WORD',
+                    Optional(choice(DelimitedList('ESCAPED_STRING'),
+                                    ZeroOrMore('NUMBER'))),
+                    '.')
+
+        datas = [
+            (
+                'IF "foo" bar .',
+                ['IF', [], '"foo"', 'bar', [[]], '.'],
+                [
+                    Token(kind='WORD', value='IF', offset=0),
+                    [],
+                    Token(kind='ESCAPED_STRING', value='"foo"', offset=3),
+                    Token(kind='WORD', value='bar', offset=9),
+                    [[]],
+                    Token(kind='.', value='.', offset=13)
+                ]
+            ),
+            (
+                'IF B "" b 1 2 .',
+                ['IF', ['B'], '""', 'b', [['1', '2']], '.'],
+                [
+                    Token(kind='WORD', value='IF', offset=0),
+                    [
+                        Token(kind='WORD', value='B', offset=3)
+                    ],
+                    Token(kind='ESCAPED_STRING', value='""', offset=5),
+                    Token(kind='WORD', value='b', offset=8),
+                    [
+                        [
+                            Token(kind='NUMBER', value='1', offset=10),
+                            Token(kind='NUMBER', value='2', offset=12)
+                        ]
+                    ],
+                    Token(kind='.', value='.', offset=14)
+                ]
+            )
+        ]
+
+        for text, expected_tree, expected_token_tree in datas:
+            tree = Parser().parse(text)
+            self.assertEqual(tree, expected_tree)
+            tree = Parser().parse(text, token_tree=True)
+            self.assertEqual(tree, expected_token_tree)
+
+    def test_parser_bare(self):
+        class Parser(textparser.Parser):
+
+            pass
+
+        with self.assertRaises(NotImplementedError) as cm:
+            Parser().parse('foo')
+
+        self.assertEqual(str(cm.exception), 'No grammar defined.')
+
+    def test_parser_default_token_specs(self):
+        class Parser(textparser.Parser):
+
+            def grammar(self):
+                return 'WORD'
+
+        tree = Parser().parse('foo')
+        self.assertEqual(tree, 'foo')
+
     def test_parser_tokenize_mismatch(self):
         class Parser(textparser.Parser):
 
-            def tokenize(self, text):
-                raise TokenizeError(text, 5)
+            def token_specs(self):
+                return [
+                    ('SKIP',                r'[ \r\n\t]+'),
+                    ('NUMBER',              r'-?\d+(\.\d+)?([eE][+-]?\d+)?'),
+                    ('MISMATCH',            r'.')
+                ]
 
             def grammar(self):
-                return Grammar(Sequence('NUMBER', 'WORD'))
+                return Grammar('NUMBER')
 
         with self.assertRaises(textparser.ParseError) as cm:
-            Parser().parse('12\n3456\n789')
+            Parser().parse('12\n34foo\n789')
 
         self.assertEqual(cm.exception.offset, 5)
         self.assertEqual(cm.exception.line, 2)
         self.assertEqual(cm.exception.column, 3)
         self.assertEqual(str(cm.exception),
-                         'Invalid syntax at line 2, column 3: "34>>!<<56"')
+                         'Invalid syntax at line 2, column 3: "34>>!<<foo"')
 
     def test_parser_grammar_mismatch(self):
         class Parser(textparser.Parser):
