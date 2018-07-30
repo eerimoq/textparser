@@ -83,7 +83,7 @@ Benchmark
 =========
 
 A `benchmark`_ comparing the CPU time of 10 JSON parsers, parsing a
-276k bytes `file`_.
+`276kb file`_.
 
 .. code-block:: text
 
@@ -146,4 +146,4 @@ Contributing
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py
 .. _benchmark: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/cpu.py
-.. _file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json
+.. _276kb file: https://github.com/eerimoq/textparser/blob/master/examples/benchmarks/json/data.json
