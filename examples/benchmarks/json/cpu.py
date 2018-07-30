@@ -44,6 +44,10 @@ except:
         def parse_time(_json_string, _iterations):
             return float('inf')
 
+        @staticmethod
+        def version():
+            return 'unknown'
+
 try:
     from parsers import parsy_json
 except:
@@ -53,6 +57,10 @@ except:
         def parse_time(_json_string, _iterations):
             return float('inf')
 
+        @staticmethod
+        def version():
+            return 'unknown'
+
 try:
     from parsers import pyleri_json
 except:
@@ -61,6 +69,10 @@ except:
         @staticmethod
         def parse_time(_json_string, _iterations):
             return float('inf')
+
+        @staticmethod
+        def version():
+            return 'unknown'
 
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
