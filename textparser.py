@@ -24,6 +24,68 @@ class _String(object):
             return None
 
 
+class _Tokens(object):
+
+    def __init__(self, tokens):
+        self._tokens = tokens
+        self._pos = 0
+        self._max_pos = -1
+        self._stack = []
+
+    def get_value(self):
+        pos = self._pos
+        self._pos += 1
+
+        return self._tokens[pos]
+
+    def peek(self):
+        return self._tokens[self._pos]
+
+    def peek_max(self):
+        pos = self._pos
+
+        if self._max_pos > pos:
+            pos = self._max_pos
+
+        return self._tokens[pos]
+
+    def save(self):
+        self._stack.append(self._pos)
+
+    def restore(self):
+        self._pos = self._stack.pop()
+
+    def update(self):
+        self._stack[-1] = self._pos
+
+    def mark_max_restore(self):
+        if self._pos > self._max_pos:
+            self._max_pos = self._pos
+
+        self._pos = self._stack.pop()
+
+    def mark_max_load(self):
+        if self._pos > self._max_pos:
+            self._max_pos = self._pos
+
+        self._pos = self._stack[-1]
+
+    def drop(self):
+        self._stack.pop()
+
+    def __repr__(self):
+        return str(self._tokens[self._pos:self._pos + 2])
+
+
+class _StringTokens(_Tokens):
+
+    def get_value(self):
+        pos = self._pos
+        self._pos += 1
+
+        return self._tokens[pos].value
+
+
 def _wrap_string(item):
     if isinstance(item, str):
         item = _String(item)
@@ -148,79 +210,21 @@ class ParseError(Error):
 Token = namedtuple('Token', ['kind', 'value', 'offset'])
 
 
-class _Tokens(object):
-
-    def __init__(self, tokens):
-        self._tokens = tokens
-        self._pos = 0
-        self._max_pos = -1
-        self._stack = []
-
-    def get_value(self):
-        pos = self._pos
-        self._pos += 1
-
-        return self._tokens[pos]
-
-    def peek(self):
-        return self._tokens[self._pos]
-
-    def peek_max(self):
-        pos = self._pos
-
-        if self._max_pos > pos:
-            pos = self._max_pos
-
-        return self._tokens[pos]
-
-    def save(self):
-        self._stack.append(self._pos)
-
-    def restore(self):
-        self._pos = self._stack.pop()
-
-    def update(self):
-        self._stack[-1] = self._pos
-
-    def mark_max_restore(self):
-        if self._pos > self._max_pos:
-            self._max_pos = self._pos
-
-        self._pos = self._stack.pop()
-
-    def mark_max_load(self):
-        if self._pos > self._max_pos:
-            self._max_pos = self._pos
-
-        self._pos = self._stack[-1]
-
-    def drop(self):
-        self._stack.pop()
-
-    def __repr__(self):
-        return str(self._tokens[self._pos:self._pos + 2])
-
-
-class _StringTokens(_Tokens):
-
-    def get_value(self):
-        pos = self._pos
-        self._pos += 1
-
-        return self._tokens[pos].value
-
-
 class Pattern(object):
     """Base class of all patterns.
 
     """
 
     def match(self, tokens):
+        """Returns ``None`` on mismatch, and anything else on match.
+
+        """
+
         raise NotImplementedError('To be implemented by subclasses.')
 
 
 class Sequence(Pattern):
-    """Matches a sequence of patterns.
+    """Matches a sequence of patterns. Becomes a list in the parse tree.
 
     """
 
@@ -268,10 +272,12 @@ class Choice(Pattern):
 
 
 class ChoiceDict(Pattern):
-    """Matches any of given patterns.
+    """Matches any of given patterns. The first token kind of all patterns
+    must be unique, otherwise and :class:`~textparser.Error` exception
+    is raised.
 
-    The first token kind of all patterns must be unique, otherwise and
-    :class:`~textparser.Error` exception is raised.
+    This class is faster than :class:`~textparser.Choice`, and should
+    be used if the grammar allows it.
 
     """
 
@@ -318,8 +324,8 @@ class ChoiceDict(Pattern):
 
 
 class Repeated(Pattern):
-    """Matches `pattern` at least `minimum` times and returns the matches
-    as a list.
+    """Matches `pattern` at least `minimum` times. Any match becomes a
+    list in the parse tree.
 
     Stops if `end` is matched.
 
@@ -364,10 +370,8 @@ class Repeated(Pattern):
 
 
 class RepeatedDict(Repeated):
-    """Matches `pattern` at least `minimum` times and returns the matches
-    as a dictionary.
-
-    Stops if `end` is matched.
+    """Same as :class:`~textparser.Repeated`, but becomes a dictionary
+    instead of a list in the parse tree.
 
     `key` is a function taking the match as input and returning the
     dictionary key. By default the first element in the match is used
@@ -419,8 +423,7 @@ class RepeatedDict(Repeated):
 
 
 class ZeroOrMore(Repeated):
-    """Matches `pattern` zero or more times and returns the matches as a
-    list.
+    """Matches `pattern` zero or more times.
 
     See :class:`~textparser.Repeated` for more details.
 
@@ -431,8 +434,7 @@ class ZeroOrMore(Repeated):
 
 
 class ZeroOrMoreDict(RepeatedDict):
-    """Matches `pattern` zero or more times and returns the matches as a
-    dictionary.
+    """Matches `pattern` zero or more times.
 
     See :class:`~textparser.RepeatedDict` for more details.
 
@@ -443,8 +445,7 @@ class ZeroOrMoreDict(RepeatedDict):
 
 
 class OneOrMore(Repeated):
-    """Matches `pattern` one or more times and returns the matches as a
-    list.
+    """Matches `pattern` one or more times.
 
     See :class:`~textparser.Repeated` for more details.
 
@@ -455,8 +456,7 @@ class OneOrMore(Repeated):
 
 
 class OneOrMoreDict(RepeatedDict):
-    """Matches `pattern` one or more times and returns the matches as a
-    dictionary.
+    """Matches `pattern` one or more times.
 
     See :class:`~textparser.RepeatedDict` for more details.
 
@@ -468,8 +468,8 @@ class OneOrMoreDict(RepeatedDict):
 
 class DelimitedList(Pattern):
     """Matches a delimented list of `pattern` separated by
-    `delim`. Returns a list of matches if `pattern` matched at least
-    once. The delimitors are not part of the result.
+    `delim`. `pattern` must be matched at least once. Any match
+    becomes a list in the parse tree, excluding the delimitors.
 
     """
 
@@ -509,7 +509,8 @@ class DelimitedList(Pattern):
 
 
 class Optional(Pattern):
-    """Matches `pattern` zero or one times.
+    """Matches `pattern` zero or one times. Becomes a list in the parse
+    tree, empty on mismatch.
 
     """
 
@@ -540,7 +541,8 @@ class Any(Pattern):
 
 
 class Not(Pattern):
-    """Does not match `pattern`. Returns an empty list on match.
+    """Does not match `pattern`. Any match becomes an empty list in the
+    parse tree.
 
     """
 
@@ -568,8 +570,8 @@ class NoMatch(Pattern):
 
 
 class Tag(Pattern):
-    """Tags any matched `pattern` with name `name`, and returns it as a
-    two-tuple of `name` and match.
+    """Tags any matched `pattern` with name `name`. Becomes a two-tuple of
+    `name` and match in the parse tree.
 
     """
 
@@ -643,7 +645,9 @@ class Grammar(object):
 
 def choice(*patterns):
     """Returns an instance of the fastest choice class for given patterns
-    `patterns`.
+    `patterns`. It is recommended to use this function instead of
+    :class:`~textparser.Choice` and :class:`~textparser.ChoiceDict`
+    directly.
 
     """
 

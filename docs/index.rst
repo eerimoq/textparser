@@ -35,54 +35,38 @@ Here is a fictitious example grammar:
        'END')
 
 .. autoclass:: textparser.Sequence
-    :members:
 
 .. autoclass:: textparser.Choice
-    :members:
 
 .. autoclass:: textparser.ChoiceDict
-    :members:
 
 .. autofunction:: textparser.choice
 
 .. autoclass:: textparser.ZeroOrMore
-    :members:
 
 .. autoclass:: textparser.ZeroOrMoreDict
-    :members:
 
 .. autoclass:: textparser.OneOrMore
-    :members:
 
 .. autoclass:: textparser.OneOrMoreDict
-    :members:
 
 .. autoclass:: textparser.DelimitedList
-    :members:
 
 .. autoclass:: textparser.Optional
-    :members:
 
 .. autoclass:: textparser.Any
-    :members:
 
 .. autoclass:: textparser.Not
-    :members:
 
 .. autoclass:: textparser.NoMatch
-    :members:
 
 .. autoclass:: textparser.Tag
-    :members:
 
 .. autoclass:: textparser.Forward
-    :members:
 
 .. autoclass:: textparser.Repeated
-    :members:
 
 .. autoclass:: textparser.RepeatedDict
-    :members:
 
 .. autoclass:: textparser.Pattern
     :members:
