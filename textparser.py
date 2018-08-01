@@ -246,8 +246,8 @@ class Sequence(Pattern):
 
 
 class Choice(Pattern):
-    """Matches any of given patterns `patterns`. The first pattern in the
-    list has highest priority, and the last lowest.
+    """Matches any of given ordered patterns `patterns`. The first pattern
+    in the list has highest priority, and the last lowest.
 
     """
 
