@@ -184,7 +184,7 @@ class ParseError(Error):
 
     @property
     def offset(self):
-        """Offset into the text where the tokenizer failed.
+        """Offset into the text where the parser failed.
 
         """
 
@@ -646,8 +646,8 @@ class Grammar(object):
 def choice(*patterns):
     """Returns an instance of the fastest choice class for given patterns
     `patterns`. It is recommended to use this function instead of
-    :class:`~textparser.Choice` and :class:`~textparser.ChoiceDict`
-    directly.
+    instantiate :class:`~textparser.Choice` or
+    :class:`~textparser.ChoiceDict` directly.
 
     """
 
