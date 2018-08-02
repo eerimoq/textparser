@@ -21,6 +21,7 @@ from textparser import Tag
 from textparser import Forward
 from textparser import NoMatch
 from textparser import Not
+from textparser import And
 from textparser import markup_line
 
 
@@ -257,27 +258,6 @@ class TextParserTest(unittest.TestCase):
             tree = grammar.parse(tokens)
             self.assertEqual(tree, expected_tree)
 
-    def test_grammar_zero_or_more_end(self):
-        grammar = Grammar(
-            Sequence(ZeroOrMore('WORD', end=Sequence('WORD', 'NUMBER')),
-                     Sequence('WORD', 'NUMBER')))
-
-        datas = [
-            (
-                [('WORD', 'bar'), ('NUMBER', '1')],
-                [[], ['bar', '1']]
-            ),
-            (
-                [('WORD', 'foo'), ('WORD', 'bar'), ('NUMBER', '1')],
-                [['foo'], ['bar', '1']]
-            )
-        ]
-
-        for tokens, expected_tree in datas:
-            tokens = tokenize(tokens)
-            tree = grammar.parse(tokens)
-            self.assertEqual(tree, expected_tree)
-
     def test_grammar_zero_or_more_dict(self):
         grammar = Grammar(ZeroOrMoreDict(Sequence('WORD', 'NUMBER')))
 
@@ -294,27 +274,6 @@ class TextParserTest(unittest.TestCase):
                     'foo': [['foo', '1'], ['foo', '3']],
                     'bar': [['bar', '2']]
                 }
-            )
-        ]
-
-        for tokens, expected_tree in datas:
-            tokens = tokenize(tokens)
-            tree = grammar.parse(tokens)
-            self.assertEqual(tree, expected_tree)
-
-    def test_grammar_zero_or_more_dict_end(self):
-        grammar = Grammar(
-            Sequence(ZeroOrMoreDict('WORD', end=Sequence('WORD', 'NUMBER')),
-                     Sequence('WORD', 'NUMBER')))
-
-        datas = [
-            (
-                [('WORD', 'bar'), ('NUMBER', '1')],
-                [{}, ['bar', '1']]
-            ),
-            (
-                [('WORD', 'foo'), ('WORD', 'bar'), ('NUMBER', '1')],
-                [{'f': ['foo']}, ['bar', '1']]
             )
         ]
 
@@ -363,38 +322,6 @@ class TextParserTest(unittest.TestCase):
                 grammar.parse(tokens)
 
             self.assertEqual(cm.exception.offset, offset)
-
-    def test_grammar_one_or_more_end(self):
-        grammar = Grammar(
-            Sequence(OneOrMore('WORD', Sequence('WORD', 'NUMBER')),
-                     Sequence('WORD', 'NUMBER')))
-
-        datas = [
-            (
-                [('WORD', 'foo'), ('WORD', 'bar'), ('NUMBER', '1')],
-                [['foo'], ['bar', '1']]
-            )
-        ]
-
-        for tokens, expected_tree in datas:
-            tokens = tokenize(tokens)
-            tree = grammar.parse(tokens)
-            self.assertEqual(tree, expected_tree)
-
-    def test_grammar_one_or_more_end_mismatch(self):
-        grammar = Grammar(OneOrMore('WORD', Sequence('WORD', 'NUMBER')))
-
-        datas = [
-            [('WORD', 'bar', 1), ('NUMBER', '1', 2)]
-        ]
-
-        for tokens in datas:
-            tokens = tokenize(tokens)
-
-            with self.assertRaises(textparser.GrammarError) as cm:
-                grammar.parse(tokens)
-
-            self.assertEqual(cm.exception.offset, 1)
 
     def test_grammar_one_or_more_dict(self):
         grammar = Grammar(OneOrMoreDict(Sequence('WORD', 'NUMBER')))
@@ -455,21 +382,6 @@ class TextParserTest(unittest.TestCase):
                 grammar.parse(tokens)
 
             self.assertEqual(cm.exception.offset, line)
-
-    def test_grammar_one_or_more_dict_end_mismatch(self):
-        grammar = Grammar(OneOrMoreDict('WORD', Sequence('WORD', 'NUMBER')))
-
-        datas = [
-            [('WORD', 'bar', 1), ('NUMBER', '1', 2)]
-        ]
-
-        for tokens in datas:
-            tokens = tokenize(tokens)
-
-            with self.assertRaises(textparser.GrammarError) as cm:
-                grammar.parse(tokens)
-
-            self.assertEqual(cm.exception.offset, 1)
 
     def test_grammar_any(self):
         grammar = Grammar(Any())
@@ -687,6 +599,32 @@ class TextParserTest(unittest.TestCase):
                 grammar.parse(tokens)
 
             self.assertEqual(cm.exception.offset, 1)
+
+    def test_grammar_and(self):
+        grammar = Grammar(Sequence(And('NUMBER'), 'NUMBER'))
+
+        datas = [
+            [('NUMBER', '1')]
+        ]
+
+        for tokens in datas:
+            tree = grammar.parse(tokenize(tokens))
+            self.assertEqual(tree, [[], '1'])
+
+    def test_grammar_and_mismatch(self):
+        grammar = Grammar(Sequence(And('NUMBER'), 'NUMBER'))
+
+        datas = [
+            [('WORD', 'foo', 3), ('NUMBER', '1', 4)]
+        ]
+
+        for tokens in datas:
+            tokens = tokenize(tokens)
+
+            with self.assertRaises(textparser.GrammarError) as cm:
+                grammar.parse(tokens)
+
+            self.assertEqual(cm.exception.offset, 3)
 
     def test_grammar_not(self):
         grammar = Grammar(Sequence(Not('WORD'), 'NUMBER'))
@@ -1031,24 +969,6 @@ class TextParserTest(unittest.TestCase):
             self.assertEqual(cm.exception.line, line)
             self.assertEqual(cm.exception.column, column)
             self.assertEqual(str(cm.exception), message)
-
-    def test_parser_grammar_mismatch_zero_or_more_end_max(self):
-        class Parser(textparser.Parser):
-
-            def tokenize(self, _text):
-                return tokenize([('TEXT', 'foo', 0)], add_eof_token=False)
-
-            def grammar(self):
-                return ZeroOrMore('NUMBER', end=Sequence('TEXT', 'WORD'))
-
-        with self.assertRaises(textparser.ParseError) as cm:
-            Parser().parse('foo')
-
-        self.assertEqual(cm.exception.offset, 0)
-        self.assertEqual(cm.exception.line, 1)
-        self.assertEqual(cm.exception.column, 1)
-        self.assertEqual(str(cm.exception),
-                         'Invalid syntax at line 1, column 1: ">>!<<foo"')
 
     def test_parse_error(self):
         class Parser(textparser.Parser):

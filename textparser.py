@@ -327,17 +327,10 @@ class Repeated(Pattern):
     """Matches `pattern` at least `minimum` times. Any match becomes a
     list in the parse tree.
 
-    Stops if `end` is matched.
-
     """
 
-    def __init__(self, pattern, end=None, minimum=0):
+    def __init__(self, pattern, minimum=0):
         self._pattern = _wrap_string(pattern)
-
-        if end is not None:
-            end = _wrap_string(end)
-
-        self._end = end
         self._minimum = minimum
 
     def match(self, tokens):
@@ -345,15 +338,6 @@ class Repeated(Pattern):
         tokens.save()
 
         while True:
-            if self._end is not None:
-                tokens.save()
-                mo = self._end.match(tokens)
-                tokens.restore()
-
-                if mo is not None:
-                    tokens.drop()
-                    break
-
             mo = self._pattern.match(tokens)
 
             if mo is None:
@@ -379,8 +363,8 @@ class RepeatedDict(Repeated):
 
     """
 
-    def __init__(self, pattern, end=None, minimum=0, key=None):
-        super(RepeatedDict, self).__init__(pattern, end, minimum)
+    def __init__(self, pattern, minimum=0, key=None):
+        super(RepeatedDict, self).__init__(pattern, minimum)
 
         if key is None:
             key = itemgetter(0)
@@ -392,15 +376,6 @@ class RepeatedDict(Repeated):
         tokens.save()
 
         while True:
-            if self._end is not None:
-                tokens.save()
-                mo = self._end.match(tokens)
-                tokens.restore()
-
-                if mo is not None:
-                    tokens.drop()
-                    break
-
             mo = self._pattern.match(tokens)
 
             if mo is None:
@@ -429,8 +404,8 @@ class ZeroOrMore(Repeated):
 
     """
 
-    def __init__(self, pattern, end=None):
-        super(ZeroOrMore, self).__init__(pattern, end, 0)
+    def __init__(self, pattern):
+        super(ZeroOrMore, self).__init__(pattern, 0)
 
 
 class ZeroOrMoreDict(RepeatedDict):
@@ -440,8 +415,8 @@ class ZeroOrMoreDict(RepeatedDict):
 
     """
 
-    def __init__(self, pattern, end=None, key=None):
-        super(ZeroOrMoreDict, self).__init__(pattern, end, 0, key)
+    def __init__(self, pattern, key=None):
+        super(ZeroOrMoreDict, self).__init__(pattern, 0, key)
 
 
 class OneOrMore(Repeated):
@@ -451,8 +426,8 @@ class OneOrMore(Repeated):
 
     """
 
-    def __init__(self, pattern, end=None):
-        super(OneOrMore, self).__init__(pattern, end, 1)
+    def __init__(self, pattern):
+        super(OneOrMore, self).__init__(pattern, 1)
 
 
 class OneOrMoreDict(RepeatedDict):
@@ -462,8 +437,8 @@ class OneOrMoreDict(RepeatedDict):
 
     """
 
-    def __init__(self, pattern, end=None, key=None):
-        super(OneOrMoreDict, self).__init__(pattern, end, 1, key)
+    def __init__(self, pattern, key=None):
+        super(OneOrMoreDict, self).__init__(pattern, 1, key)
 
 
 class DelimitedList(Pattern):
@@ -540,9 +515,31 @@ class Any(Pattern):
         return tokens.get_value()
 
 
+class And(Pattern):
+    """Matches `pattern`, without consuming any tokens. Any match becomes
+    an empty list in the parse tree.
+
+    """
+
+    def __init__(self, pattern):
+        self._pattern = _wrap_string(pattern)
+
+    def match(self, tokens):
+        tokens.save()
+        mo = self._pattern.match(tokens)
+        tokens.restore()
+
+        if mo is None:
+            return None
+        else:
+            return []
+
+
 class Not(Pattern):
-    """Does not match `pattern`. Any match becomes an empty list in the
-    parse tree.
+    """Matches if `pattern` does not match. Any match becomes an empty
+    list in the parse tree.
+
+    Just like :class:`~textparser.And`, no tokens are consumed.
 
     """
 
