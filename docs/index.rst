@@ -29,7 +29,7 @@ Here is a fictitious example grammar:
    grammar = Sequence(
        'BEGIN',
        Optional(choice('IF', Sequence(ZeroOrMore('NUMBER')))),
-       OneOrMore('WORD', end=Sequence('WORD', 'NUMBER')),
+       OneOrMore(Sequence('WORD', Not('NUMBER'))),
        Any(),
        DelimitedList('WORD', delim=':'),
        'END')
