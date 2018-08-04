@@ -56,6 +56,8 @@ Here is a fictitious example grammar:
 
 .. autoclass:: textparser.Any
 
+.. autoclass:: textparser.And
+
 .. autoclass:: textparser.Not
 
 .. autoclass:: textparser.NoMatch
