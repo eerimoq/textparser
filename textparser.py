@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.16.0'
+__version__ = '0.17.0'
 
 
 class _String(object):
