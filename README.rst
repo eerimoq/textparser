@@ -74,20 +74,20 @@ kb file`_.
 .. code-block:: text
 
    $ env PYTHONPATH=. python3 examples/benchmarks/json/speed.py
+
    Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
    PACKAGE         SECONDS   RATIO  VERSION
-   textparser         0.10    100%  0.14.0
-   lark (LALR)        0.26    265%  0.6.2
-   funcparserlib      0.34    358%  unknown
-   parsimonious       0.41    423%  unknown
-   textx              0.53    548%  1.7.1
-   pyparsing          0.69    715%  2.2.0
-   pyleri             0.81    836%  1.2.2
-   parsy              0.94    976%  1.2.0
-   lark (Earley)      1.88   1949%  0.6.2
-   parsita            2.31   2401%  unknown
-   $
+   textparser         0.11    100%  0.17.0
+   lark (LALR)        0.28    263%  0.6.4
+   funcparserlib      0.38    353%  unknown
+   parsimonious       0.42    397%  unknown
+   textx              0.57    536%  1.7.1
+   pyparsing          0.74    696%  2.2.0
+   pyleri             0.89    835%  1.2.2
+   parsy              1.03    968%  1.2.0
+   lark (Earley)      2.03   1903%  0.6.4
+   parsita            2.54   2380%  unknown
 
 *NOTE 1: The parsers are not necessarily optimized for
 speed. Optimizing them will likely affect the measurements.*
