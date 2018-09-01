@@ -1,10 +1,9 @@
-import timeit
-
 """Based on
 https://github.com/vlasovskikh/funcparserlib/blob/master/funcparserlib/tests/json.py.
 
 """
 
+import timeit
 import re
 
 from funcparserlib.lexer import make_tokenizer
