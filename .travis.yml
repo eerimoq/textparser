@@ -13,6 +13,7 @@ script:
   - env PYTHONPATH=. python examples/hello_world.py
   - env PYTHONPATH=. python examples/benchmarks/json/errors.py
   - env PYTHONPATH=. python examples/benchmarks/json/parse_tree.py
+  - env PYTHONPATH=. python examples/json.py
   - env PYTHONPATH=. python examples/benchmarks/json/speed.py
 after_success:
   coveralls
