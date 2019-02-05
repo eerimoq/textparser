@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.17.0'
+__version__ = '0.18.0'
 
 
 class _String(object):
@@ -692,7 +692,7 @@ def tokenize_init(spec):
 
     """
 
-    tokens = []
+    tokens = [Token('__SOF__', None, 0)]
     re_token = '|'.join([
         '(?P<{}>{})'.format(name, regex) for name, regex in spec
     ])
@@ -810,7 +810,7 @@ class Parser(object):
 
         raise NotImplementedError('No grammar defined.')
 
-    def parse(self, text, token_tree=False):
+    def parse(self, text, token_tree=False, match_sof=False):
         """Parse given string `text` and return the parse tree. Raises
         :class:`~textparser.ParseError` on failure.
 
@@ -835,6 +835,10 @@ class Parser(object):
 
             if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
                 tokens.append(Token('__EOF__', None, len(text)))
+
+            if not match_sof:
+                if len(tokens) > 0 and tokens[0].kind == '__SOF__':
+                    del tokens[0]
 
             return Grammar(self.grammar()).parse(tokens, token_tree)
         except (TokenizeError, GrammarError) as e:

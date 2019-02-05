@@ -716,7 +716,7 @@ class TextParserTest(unittest.TestCase):
 
         for spec, expected_re_token in datas:
             tokens, re_token = tokenize_init(spec)
-            self.assertEqual(tokens, [])
+            self.assertEqual(tokens, [Token(kind='__SOF__', value=None, offset=0)])
             self.assertEqual(re_token, expected_re_token)
 
     def test_parser(self):
