@@ -668,6 +668,24 @@ class TextParserTest(unittest.TestCase):
 
             self.assertEqual(cm.exception.offset, 3)
 
+    def test_grammar_none(self):
+        class AnyAsNone(textparser.Pattern):
+
+            def match(self, tokens):
+                tokens.get_value()
+
+                return None
+
+        grammar = Grammar(AnyAsNone())
+
+        datas = [
+            [('NUMBER', '1')]
+        ]
+
+        for tokens in datas:
+            tree = grammar.parse(tokenize(tokens))
+            self.assertEqual(tree, None)
+
     def test_grammar_error(self):
         grammar = Grammar(NoMatch())
 

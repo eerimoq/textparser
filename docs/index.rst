@@ -73,6 +73,8 @@ Here is a fictitious example grammar:
 .. autoclass:: textparser.Pattern
     :members:
 
+.. autodata:: textparser.MISMATCH
+
 Exceptions
 ==========
 

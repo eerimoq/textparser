@@ -6,7 +6,17 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.18.0'
+__version__ = '0.19.0'
+
+
+class _Mismatch(object):
+    pass
+
+
+MISMATCH = _Mismatch()
+"""Returned by :func:`~textparser.Pattern.match()` on mismatch.
+
+"""
 
 
 class _String(object):
@@ -21,7 +31,7 @@ class _String(object):
         if self.kind == tokens.peek().kind:
             return tokens.get_value()
         else:
-            return None
+            return MISMATCH
 
 
 class _Tokens(object):
@@ -216,7 +226,8 @@ class Pattern(object):
     """
 
     def match(self, tokens):
-        """Returns ``None`` on mismatch, and anything else on match.
+        """Returns :data:`~textparser.MISMATCH` on mismatch, and anything else
+        on match.
 
         """
 
@@ -237,8 +248,8 @@ class Sequence(Pattern):
         for pattern in self.patterns:
             mo = pattern.match(tokens)
 
-            if mo is None:
-                return None
+            if mo is MISMATCH:
+                return MISMATCH
 
             matched.append(mo)
 
@@ -261,14 +272,14 @@ class Choice(Pattern):
             tokens.mark_max_load()
             mo = pattern.match(tokens)
 
-            if mo is not None:
+            if mo is not MISMATCH:
                 tokens.drop()
 
                 return mo
 
         tokens.restore()
 
-        return None
+        return MISMATCH
 
 
 class ChoiceDict(Pattern):
@@ -320,7 +331,7 @@ class ChoiceDict(Pattern):
         if kind in self._patterns_map:
             return self._patterns_map[kind].match(tokens)
         else:
-            return None
+            return MISMATCH
 
 
 class Repeated(Pattern):
@@ -340,7 +351,7 @@ class Repeated(Pattern):
         while True:
             mo = self._pattern.match(tokens)
 
-            if mo is None:
+            if mo is MISMATCH:
                 tokens.mark_max_restore()
                 break
 
@@ -350,7 +361,7 @@ class Repeated(Pattern):
         if len(matched) >= self._minimum:
             return matched
         else:
-            return None
+            return MISMATCH
 
 
 class RepeatedDict(Repeated):
@@ -378,7 +389,7 @@ class RepeatedDict(Repeated):
         while True:
             mo = self._pattern.match(tokens)
 
-            if mo is None:
+            if mo is MISMATCH:
                 tokens.mark_max_restore()
                 break
 
@@ -394,7 +405,7 @@ class RepeatedDict(Repeated):
         if len(matched) >= self._minimum:
             return matched
         else:
-            return None
+            return MISMATCH
 
 
 class ZeroOrMore(Repeated):
@@ -456,8 +467,8 @@ class DelimitedList(Pattern):
         # First pattern.
         mo = self._pattern.match(tokens)
 
-        if mo is None:
-            return None
+        if mo is MISMATCH:
+            return MISMATCH
 
         matched = [mo]
         tokens.save()
@@ -466,13 +477,13 @@ class DelimitedList(Pattern):
             # Discard the delimiter.
             mo = self._delim.match(tokens)
 
-            if mo is None:
+            if mo is MISMATCH:
                 break
 
             # Pattern.
             mo = self._pattern.match(tokens)
 
-            if mo is None:
+            if mo is MISMATCH:
                 break
 
             matched.append(mo)
@@ -496,7 +507,7 @@ class Optional(Pattern):
         tokens.save()
         mo = self._pattern.match(tokens)
 
-        if mo is None:
+        if mo is MISMATCH:
             tokens.mark_max_restore()
 
             return []
@@ -529,8 +540,8 @@ class And(Pattern):
         mo = self._pattern.match(tokens)
         tokens.restore()
 
-        if mo is None:
-            return None
+        if mo is MISMATCH:
+            return MISMATCH
         else:
             return []
 
@@ -551,10 +562,10 @@ class Not(Pattern):
         mo = self._pattern.match(tokens)
         tokens.restore()
 
-        if mo is None:
+        if mo is MISMATCH:
             return []
         else:
-            return None
+            return MISMATCH
 
 
 class NoMatch(Pattern):
@@ -563,7 +574,7 @@ class NoMatch(Pattern):
     """
 
     def match(self, tokens):
-        return None
+        return MISMATCH
 
 
 class Tag(Pattern):
@@ -583,10 +594,10 @@ class Tag(Pattern):
     def match(self, tokens):
         mo = self._pattern.match(tokens)
 
-        if mo is not None:
+        if mo is not MISMATCH:
             return (self._name, mo)
         else:
-            return None
+            return MISMATCH
 
 
 class Forward(Pattern):
@@ -634,7 +645,7 @@ class Grammar(object):
 
         parsed = self._root.match(tokens)
 
-        if parsed is not None and tokens.peek_max().kind == '__EOF__':
+        if parsed is not MISMATCH and tokens.peek_max().kind == '__EOF__':
             return parsed
         else:
             raise GrammarError(tokens.peek_max().offset)
