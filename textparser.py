@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.19.0'
+__version__ = '0.20.0'
 
 
 class _Mismatch(object):
@@ -524,6 +524,33 @@ class Any(Pattern):
 
     def match(self, tokens):
         return tokens.get_value()
+
+
+class AnyUntil(Pattern):
+    """Matches any token until given pattern is found. Becomes a list in
+    the parse tree, not including the given pattern match.
+
+    """
+
+    def __init__(self, pattern):
+        self._pattern = _wrap_string(pattern)
+
+    def match(self, tokens):
+        matched = []
+        tokens.save()
+
+        while True:
+            mo = self._pattern.match(tokens)
+
+            if mo is not MISMATCH:
+                break
+
+            matched.append(tokens.get_value())
+            tokens.update()
+
+        tokens.restore()
+
+        return matched
 
 
 class And(Pattern):
