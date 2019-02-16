@@ -625,6 +625,35 @@ class TextParserTest(unittest.TestCase):
 
         self.parse_and_assert_mismatch(grammar, datas)
 
+    def test_parse_start_and_end_of_file(self):
+        class Parser(textparser.Parser):
+
+            def grammar(self):
+                return Sequence('__SOF__', '__EOF__')
+
+        self.assertEqual(Parser().parse('', match_sof=True),
+                         ['__SOF__', '__EOF__'])
+
+    def test_parse_start_of_file_mismatch(self):
+        class Parser(textparser.Parser):
+
+            def grammar(self):
+                return Sequence('__EOF__')
+
+        with self.assertRaises(textparser.ParseError) as cm:
+            Parser().parse('123', match_sof=True)
+
+        self.assertEqual(str(cm.exception),
+                         'Invalid syntax at line 1, column 1: ">>!<<123"')
+
+    def test_parse_end_of_file(self):
+        class Parser(textparser.Parser):
+
+            def grammar(self):
+                return '__EOF__'
+
+        self.assertEqual(Parser().parse('', match_sof=False), '__EOF__')
+
     def test_grammar_none(self):
         class AnyAsNone(textparser.Pattern):
 
@@ -692,7 +721,8 @@ class TextParserTest(unittest.TestCase):
 
         for spec, expected_re_token in datas:
             tokens, re_token = tokenize_init(spec)
-            self.assertEqual(tokens, [Token(kind='__SOF__', value=None, offset=0)])
+            self.assertEqual(tokens,
+                             [Token(kind='__SOF__', value='__SOF__', offset=0)])
             self.assertEqual(re_token, expected_re_token)
 
     def test_parser(self):

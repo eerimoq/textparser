@@ -57,7 +57,10 @@ class _Tokens(object):
         if self._max_pos > pos:
             pos = self._max_pos
 
-        return self._tokens[pos]
+        if pos >= len(self._tokens):
+            return self._tokens[-1]
+        else:
+            return self._tokens[pos]
 
     def save(self):
         self._stack.append(self._pos)
@@ -730,7 +733,7 @@ def tokenize_init(spec):
 
     """
 
-    tokens = [Token('__SOF__', None, 0)]
+    tokens = [Token('__SOF__', '__SOF__', 0)]
     re_token = '|'.join([
         '(?P<{}>{})'.format(name, regex) for name, regex in spec
     ])
@@ -872,7 +875,7 @@ class Parser(object):
             tokens = self.tokenize(text)
 
             if len(tokens) == 0 or tokens[-1].kind != '__EOF__':
-                tokens.append(Token('__EOF__', None, len(text)))
+                tokens.append(Token('__EOF__', '__EOF__', len(text)))
 
             if not match_sof:
                 if len(tokens) > 0 and tokens[0].kind == '__SOF__':
