@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.21.0'
+__version__ = '0.21.1'
 
 
 class _Mismatch(object):
@@ -540,16 +540,16 @@ class AnyUntil(Pattern):
 
     def match(self, tokens):
         matched = []
-        tokens.save()
 
         while True:
+            tokens.save()
             mo = self._pattern.match(tokens)
 
             if mo is not MISMATCH:
                 break
 
+            tokens.restore()
             matched.append(tokens.get_value())
-            tokens.update()
 
         tokens.restore()
 

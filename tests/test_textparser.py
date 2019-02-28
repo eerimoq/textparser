@@ -382,6 +382,23 @@ class TextParserTest(unittest.TestCase):
 
         self.parse_and_assert_tree(grammar, datas)
 
+    def test_grammar_any_until_sequence(self):
+        grammar = Grammar(Sequence(AnyUntil(Sequence('WORD', 'STRING')),
+                                   'WORD',
+                                   'STRING'))
+
+        datas = [
+            (
+                [('NUMBER', '1'),
+                 ('WORD', 'a'),
+                 ('WORD', 'b'),
+                 ('STRING', '"b"')],
+                [['1', 'a'], 'b', '"b"']
+            )
+        ]
+
+        self.parse_and_assert_tree(grammar, datas)
+
     def test_grammar_1(self):
         grammar = Grammar(Sequence(
             'IF',
