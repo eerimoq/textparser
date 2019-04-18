@@ -78,16 +78,16 @@ kb file`_.
    Parsed 'examples/benchmarks/json/data.json' 1 time(s) in:
 
    PACKAGE         SECONDS   RATIO  VERSION
-   textparser         0.09    100%  0.19.0
-   parsimonious       0.17    183%  unknown
-   lark (LALR)        0.29    306%  0.6.6
-   funcparserlib      0.33    346%  unknown
-   textx              0.53    557%  1.8.0
-   pyparsing          0.67    710%  2.3.1
-   pyleri             0.78    825%  1.2.2
-   parsy              0.91    969%  1.2.0
-   lark (Earley)      2.11   2240%  0.6.6
-   parsita            2.26   2393%  unknown
+   textparser         0.10    100%  0.21.1
+   parsimonious       0.17    169%  unknown
+   lark (LALR)        0.27    267%  0.7.0
+   funcparserlib      0.34    340%  unknown
+   textx              0.54    546%  1.8.0
+   pyparsing          0.68    684%  2.4.0
+   pyleri             0.88    886%  1.2.2
+   parsy              0.92    925%  1.2.0
+   parsita            2.28   2286%  unknown
+   lark (Earley)      2.34   2348%  0.7.0
 
 *NOTE 1: The parsers are not necessarily optimized for
 speed. Optimizing them will likely affect the measurements.*
