@@ -1040,8 +1040,8 @@ class TextParserTest(unittest.TestCase):
         datas = [
             ('{}', '{}'),
             ('{{}}', '{  }'),
-            ('{{} xxx {}}', '{         }'),
-            ('1{a}2{b}3', '1{ }2{ }3')
+            ('{{\n} xxx {}}', '{ \n        }'),
+            ('1{a\n}2{b}3', '1{ \n}2{ }3')
         ]
 
         for old, expected in datas:

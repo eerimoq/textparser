@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.22.0'
+__version__ = '0.23.0'
 
 
 class _Mismatch(object):
@@ -911,7 +911,11 @@ def replace_blocks(string, start='{', end='}'):
             depth -= 1
 
             if depth == 0:
-                chunks.append(' ' * (pos - begin))
+                for chunk in string[begin:pos].split('\n'):
+                    chunks.append(' ' * len(chunk))
+                    chunks.append('\n')
+
+                chunks.pop()
                 begin = pos
 
     chunks.append(string[begin:])
