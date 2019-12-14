@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.21.1'
+__version__ = '0.22.0'
 
 
 class _Mismatch(object):
@@ -458,7 +458,7 @@ class OneOrMoreDict(RepeatedDict):
 class DelimitedList(Pattern):
     """Matches a delimented list of `pattern` separated by
     `delim`. `pattern` must be matched at least once. Any match
-    becomes a list in the parse tree, excluding the delimitors.
+    becomes a list in the parse tree, excluding the delimiters.
 
     """
 
@@ -884,3 +884,36 @@ class Parser(object):
             return Grammar(self.grammar()).parse(tokens, token_tree)
         except (TokenizeError, GrammarError) as e:
             raise ParseError(text, e.offset)
+
+
+def replace_blocks(string, start='{', end='}'):
+    """Replace all blocks starting with `start` and ending with `end` with
+    spaces (not including `start` and `end`).
+
+    """
+
+    chunks = []
+    begin = 0
+    depth = 0
+    start_length = len(start)
+    pattern = r'({}|{})'.format(re.escape(start), re.escape(end))
+
+    for mo in re.finditer(pattern, string):
+        pos = mo.start()
+
+        if mo.group() == start:
+            if depth == 0:
+                chunks.append(string[begin:pos + start_length])
+                begin = (pos + start_length)
+
+            depth += 1
+        elif depth > 0:
+            depth -= 1
+
+            if depth == 0:
+                chunks.append(' ' * (pos - begin))
+                begin = pos
+
+    chunks.append(string[begin:])
+
+    return ''.join(chunks)

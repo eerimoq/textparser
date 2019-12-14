@@ -24,6 +24,7 @@ from textparser import NoMatch
 from textparser import Not
 from textparser import And
 from textparser import markup_line
+from textparser import replace_blocks
 
 
 def tokenize(items, add_eof_token=True):
@@ -1034,6 +1035,30 @@ class TextParserTest(unittest.TestCase):
                                    marker=marker)
 
             self.assertEqual(text, line)
+
+    def test_replace_blocks(self):
+        datas = [
+            ('{}', '{}'),
+            ('{{}}', '{  }'),
+            ('{{} xxx {}}', '{         }'),
+            ('1{a}2{b}3', '1{ }2{ }3')
+        ]
+
+        for old, expected in datas:
+            new = replace_blocks(old)
+            self.assertEqual(new, expected)
+
+    def test_replace_blocks_start_end(self):
+        datas = [
+            ('1[a]2[b]3', '1[ ]2[ ]3', '[', ']'),
+            ('1{a}2{b}3', '1{ }2{ }3', '{', '}'),
+            ('1(a)2(b)3', '1( )2( )3', '(', ')'),
+            ('1((a))2((b))3', '1(( ))2(( ))3', '((', '))')
+        ]
+
+        for old, expected, start, end in datas:
+            new = replace_blocks(old, start, end)
+            self.assertEqual(new, expected)
 
 
 if __name__ == '__main__':
