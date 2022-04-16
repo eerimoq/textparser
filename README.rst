@@ -1,6 +1,3 @@
-|buildstatus|_
-|coverage|_
-
 About
 =====
 
@@ -119,15 +116,9 @@ Contributing
 
    .. code-block:: text
 
-      make test
+      python3 -m unittest
 
 #. Create a pull request.
-
-.. |buildstatus| image:: https://travis-ci.org/eerimoq/textparser.svg?branch=master
-.. _buildstatus: https://travis-ci.org/eerimoq/textparser
-
-.. |coverage| image:: https://coveralls.io/repos/github/eerimoq/textparser/badge.svg?branch=master
-.. _coverage: https://coveralls.io/github/eerimoq/textparser
 
 .. _PyParsing: https://github.com/pyparsing/pyparsing
 .. _Hello World: https://github.com/eerimoq/textparser/blob/master/examples/hello_world.py

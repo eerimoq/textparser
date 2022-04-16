@@ -1060,6 +1060,61 @@ class TextParserTest(unittest.TestCase):
             new = replace_blocks(old, start, end)
             self.assertEqual(new, expected)
 
+    def test_any_zero_or_more(self):
+        class Parser(textparser.Parser):
+
+            def keywords(self):
+                return ['interesting_group']
+
+            def token_specs(self):
+                return [
+                    ('SKIP',        r'[ \r\n\t]+'),
+                    ('WORD',        r'[A-Za-z0-9_]+'),
+                    ('SEMICOLON',   ';', r';'),
+                    ('BRACE_OPEN',  '{', r'\{'),
+                    ('BRACE_CLOSE', '}', r'\}'),
+                    ('EQUAL',       '=', r'='),
+                ]
+
+            def grammar(self):
+                interesting_group = textparser.Sequence(
+                    'interesting_group', '{',
+                    ZeroOrMore(Sequence('WORD', '=', 'WORD', ';')),
+                    '}',
+                    ';')
+
+                return Sequence(AnyUntil('interesting_group'),
+                                interesting_group,
+                                ZeroOrMore(Any()))
+
+
+        text = '''
+        some_group {
+             foo bar; foo bar;
+        };
+
+        interesting_group {
+             a = 1;
+             b = 2;
+        };
+
+        another_group {
+             foo bar
+        };
+        '''
+
+        tree = Parser().parse(text)
+        self.assertEqual(tree[1],
+                         [
+                             'interesting_group',
+                             '{',
+                             [
+                                 ['a', '=', '1', ';'],
+                                 ['b', '=', '2', ';']
+                             ],
+                             '}',
+                             ';'])
+
 
 if __name__ == '__main__':
     unittest.main()

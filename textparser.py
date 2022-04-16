@@ -6,7 +6,7 @@ from operator import itemgetter
 
 
 __author__ = 'Erik Moqvist'
-__version__ = '0.23.0'
+__version__ = '0.24.0'
 
 
 class _Mismatch(object):
@@ -526,7 +526,10 @@ class Any(Pattern):
     """
 
     def match(self, tokens):
-        return tokens.get_value()
+        if tokens.peek().kind == '__EOF__':
+            return MISMATCH
+        else:
+            return tokens.get_value()
 
 
 class AnyUntil(Pattern):
