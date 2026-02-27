@@ -1,5 +1,5 @@
 """Based on
-https://github.com/vlasovskikh/funcparserlib/blob/master/funcparserlib/tests/json.py.
+https://github.com/vlasovskikh/funcparserlib/blob/master/tests/json.py.
 
 """
 

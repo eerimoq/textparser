@@ -1,4 +1,4 @@
-"""Based on http://pyparsing.wikispaces.com/file/view/jsonParser.py.
+"""Based on https://github.com/pyparsing/pyparsing/blob/master/examples/jsonParser.py.
 
 """
 
